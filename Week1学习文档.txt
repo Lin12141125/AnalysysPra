@@ -1,0 +1,226 @@
+Reflection反射
+
+反射：加载类，再获取类中的成员变量、构造器、成员方法并操作它们。
+"Reflection允许以编程方式访问有关已加载类的字段，方法和构造函数的信息，以及使用反射字段，方法和构造函数在封装和安全限制内对其底层对应项进行操作。"
+
+拿到Class
+类.class / Class.forName("全类名") / 对象.getClass()
+
+获取构造器/成员变量对象 --> 只是用来描述，不储存任何实例值
+Constructor<?>[] cons=c1.getDeclaredConstructors(); //全部构造器，存为数组(方法名区别: 复数)
+Constructor<?> con=c1.getDeclaredConstructor(String.class, int.class); //单个，()中匹配参数
+Field[] fields=c1.getDeclaredFields(); //获取所有成员变量
+	输出类如：
+	getName: name, getType: class java.lang.String
+	// String并非基本类型，toString()返回"class " + 类的全限定名
+	// String --> field.getType().getSimpleName()，getName() --> java.lang.String
+	getName: age, getType: int
+Field field=c1.getDeclaredField("StudentName"); //获取单个成员变量
+System.out.println(field);
+	输出类如：
+	private java.lang.String reflection.Student.StudentName
+获取方法
+Method method=c1.getDeclaredMethod("setAge", int.class); // 方法名后参数匹配方法所需参数
+
+操作
+获取构造器 --> 创建变量
+// c1-->Class, con-->Constructor, newInstance-->创建对象
+当构造器为private时，可以暴力反射（临时攻破权限）-->禁止检查访问权限
+con2.setAccessible(true);
+Object s1=con2.newInstance("Hellen", 20); // ()内匹配构造器参数
+
+获取成员变量 --> 取值/赋值
+需要现有实例才能具体操作
+field.setAccessible(true); // private需要暴力
+// c1-->Class, filed-->成员变量StudentName, s-->Student实例
+field.set(s, "Lily");
+String sNameInitial=(String) field.get(s);
+
+获取方法-->调用方法
+invoke --> public Object invoke() -->return Object
+// c1-->Class, method-->某一个方法，s1-->Student实例
+Object o1=method.invoke(s, 22); //调用s的成员方法setAge(int age)，传入参数。
+// 唤醒对象s的setAge方法执行，相当于s.setAge(22);
+System.out.println(o1); // void方法，返回null
+Object o2=c1.getDeclaredMethod("getName").invoke(s);
+System.out.println(o2); // String方法，返回具体String值"Alice"
+
+
+反射可突破泛型约束
+泛型约束-->代码间约束，编译完擦除，反射-->工作在运行时
+System.out.println("Before reflection: " + list);
+Class<?> c1=list.getClass();
+Method method=c1.getDeclaredMethod("add", Object.class);
+Object o=method.invoke(list, 123); // 通过反射添加一个非String类型的元素
+System.out.println("After reflection: " + list);
+
+
+
+Record类
+隐式继承 java.lang.Record，不能显式继承任何其他类
+
+public record Teacher(String name, int age) {} // ()中描述属性
+里面的属性都是private final
+只有get方法，没有set方法（一旦构造，值不可变）
+1个带参构造, hashCode(), equals(), toString()
+
+可以添加静态变量&静态代码块
+不能添加成员变量和初始代码块（成员变量只能出现在header部分）
+
+
+
+注解
+让其他程序根据注解信息来决定怎么执行该程序
+public @interface 注解名称{
+	public 属性类型 属性名() default 默认值;
+}
+public @interface AnnotationA {
+    String name();
+    int age() default 18; //默认值
+    String[] hobbies(); //默认值
+}
+
+本质是特殊接口：public @interface A {...();} --> public interface A extends A {public ...();}
+如果注解中只有一个value属性，使用时value名称可以不写（属性只有1个且叫value(有默认值的属性不算)）
+String value(); int age() default 18; -->@A("Hello")
+
+元注解：注解的注解
+@Target(ElementType.METHOD) --> 注解只能在 成员方法 位置使用
+@Retention(RetentionPolicy.XXX) --> 注解的保留周期
+SOURCE: 源码阶段，字节码文件中不存在
+CLASS: 字节码文件阶段，运行阶段不存在
+RUNTIME: 运行阶段
+
+注解解析：判断是否存在注解，并解析其注解内容
+动态解析注解（反射）：对每个注解实例，调用annotation.annotationType()方法获取注解类型的Class对象-->通过getDeclaredMethods()方法获取该注解类型中的所有方法（即获取所有注解属性）-->调用每个方法的getName()和invoke()方法获取注解属性名称与值
+
+
+
+多线程
+
+多条线程由CPU负责调度执行
+高并发-->同时很多执行流程
+start() -->启动新线程；run() --> 普通方法执行，相当于单线程
+主线程任务不要放在子线程前-->不然只会先执行完主线程任务，再执行子线程，不会交替
+
+创建新的执行线程：
+声明为Thread的子类(无法继承其他类)，重写run()方法，创建线程对象，start()
+声明实现Runnable接口的类，实现run()，创建该实现类对象，将其作为参数交给Thread，start()Thread
+利用Callable接口、FutureTask类：定义类实现Callable接口，重写call()，封装要做的事情&要返回的数据-->把Callable类的对象封装成FutureTask线程任务对象-->将其作为参数交给Thread, start() -->线程执行完毕后，通过FutureTask对象的get()获取结果
+
+线程安全问题
+多个线程同时执行，同时访问一个共享资源并修改
+
+线程同步方案
+加锁：每次只允许一个线程加锁-->加锁后才能进入访问-->访问完毕后自动解锁-->其他线程加锁
+
+同步代码块：访问资源的核心代码上锁
+synchronized: 实例方法锁this，静态方法锁字节码（类名.class）
+
+
+synchronized
+无法中断等待锁的线程（如果锁被占用，其他线程只能一直阻塞，不能响应中断）
+非公平锁（不一定按先来后到获得锁）
+
+ReentrantLock
+需要手动加锁/解锁（try-finally）
+可响应中断：lockInterruptibly()允许等待锁的线程被中断
+支持超时尝试：tryLock(long timeout, TimeUnit unit)在指定时间内尝试获取锁，避免永久阻塞
+可公平锁：构造时传入true可以得到公平锁（FIFO）
+可以绑定多个条件
+
+
+Platform Thread 传统平台线程
+内存开销大
+每个平台线程通常需要大约 1MB 的栈内存（可以通过 -Xss 调整，但不会太小）。创建 1 万个线程就需要 ~10GB 内存。
+
+创建和销毁慢
+每次new Thread().start()都涉及系统调用（内核创建线程结构），销毁也需要内核回收，成本高。
+
+上下文切换昂贵
+当线程数远大于 CPU 核心数时，CPU 要频繁地暂停一个线程、保存寄存器状态、加载另一个线程的状态。每次切换都需要陷入内核，开销很大。（1000 个线程在 8 核 CPU 上竞争，每秒可能发生几十万次上下文切换，导致 CPU 大部分时间花在调度上，而不是干活。）
+
+阻塞浪费 CPU
+如果一个平台线程执行了Thread.sleep()或等待锁、等待 I/O，它会“占用”内核线程并进入阻塞状态，但操作系统不能拿这个内核线程去干别的（虽然可以切换出去，但线程结构和资源仍然保留）。大量阻塞线程会耗尽内核资源。
+
+
+Virtual Thread 虚拟线程
+JVM 管理的轻量级线程，不直接绑定到操作系统内核线程。它运行在某个载体线程（Carrier Thread，传统的平台线程）之上，但虚拟线程的调度由 JVM 自己完成，遇到阻塞时会自动“卸下”载体线程，释放载体线程去执行其他虚拟线程。
+
+创建
+// 直接创建并启动
+Thread vThread = Thread.ofVirtual().start(() -> { ... });
+// 先创建再启动
+Thread vThread = Thread.ofVirtual().unstarted(() -> { ... });
+vThread.start();
+// 使用ExecutorService，每个人物自动分配一个虚拟线程
+ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+executor.submit(() -> { ... });
+executor.close(); // 等待所有任务完成（JDK 21开始AutoCloseable）
+
+
+
+Tomcat
+HTTP服务器+Servlet容器
+
+1. Connector
+监听端口，接受客户端（浏览器）的TCP连接
+解析HTTP请求报文，把请求数据封装为Request和Response对象
+将Request交给Container处理，把Response中的捏偶然那个写回客户端
+2. Container
+管理Servlet生命周期，根据请求URL找到对应Servlet，调用其service方法
+
+请求处理流程
+浏览器发送HTTP请求-->Tomcat监听端口等待客户端连接-->serverSocket.accept()接受连接-->创建Socket连接对象，Tomcat开线程处理请求-->解析HTTP请求报文-->根据URL路径映射对应Servlet-->创建HttpServlet Request/Response对象，调用service(req,res)-->Servlet执行业务逻辑doGet()/doPost()，输出写入Response-->Tomcat将响应内容组装成HTTP响应报文，通过Socket输出流发送-->浏览器接收响应报文，解析并渲染页面
+
+
+Servlet生命周期
+类实例化：Tomcat通过反射调用Servlet无参构造器创造实例（第一次访问该Servlet时触发）
+初始化：init(ServletConfig config);初始化资源，建立连接，加载配置（只执行一次）
+服务：service()每次请求时调用service(req,res)
+销毁：容器关闭/应用卸载，destroy()释放资源
+
+
+HTTP报文
+
+请求格式
+<请求行> \r\n
+<请求头> \r\n
+<请求头> \r\n
+... \r\n
+\r\n                     <-- 空行，标志请求头结束
+<请求体> (可选)
+
+GET /hello HTTP/1.1\r\n		// 请求行: 请求方法、URL、HTTP版本
+Host: localhost:8080\r\n		// 请求头: key : value键值对，空行\r\n表示请求头结束
+User-Agent: Mozilla/5.0\r\n
+Accept: text/html\r\n
+\r\n						// 请求头结束
+
+POST /login HTTP/1.1			// 请求行
+Host: localhost:8080				// 请求头
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 23
+							// 请求头结束
+username=tom&password=123	// 请求体
+
+响应格式
+<状态行> \r\n
+<响应头> \r\n
+<响应头> \r\n
+... \r\n
+\r\n
+<响应体>
+
+HTTP/1.1 200 OK\r\n						// 状态行: HTTP版本、状态码、原因短语。
+Content-Type: text/html; charset=utf-8\r\n		// 响应头：Content-Type：如何解析内容
+Content-Length: 38\r\n					// Content-Length：body长度
+\r\n
+<h1>Hello from Mini-Tomcat!</h1>			// 响应体
+
+状态码：
+200 OK：成功
+404 Not Found：资源不存在
+500 Internal Server Error：服务器内部错误
+
+
