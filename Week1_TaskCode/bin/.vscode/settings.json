@@ -1,0 +1,19 @@
+{
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [
+        "lib/junit-jupiter-api-5.10.2.jar",
+        "lib/junit-jupiter-engine-5.10.2.jar",
+        "lib/junit-platform-console-standalone-1.10.2.jar",
+        "lib/lombok.jar"
+    ],
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "D:\\DownLoad\\Java\\jdk21",
+            "default": true
+        }
+    ],
+    "java.jdt.ls.java.home": "D:\\DownLoad\\Java\\jdk21",
+    "java.format.settings.url": ".vscode/java-formatter.xml"
+}
