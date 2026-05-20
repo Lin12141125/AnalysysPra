@@ -1,0 +1,71 @@
+三层架构
+Controller: 控制层，接收前端请求、进行处理、响应数据
+service: 业务逻辑处理
+Dao: Data Access Object数据访问层（持久层），负责数据访问操作（增删查改）
+
+分层解耦
+内聚：各个功能模块内部的功能联系
+
+interface EmpService
+class EmpServiceA/EmpServiceB/EmpServiceC implements service
+Controller中不再new service层的实现类 -->提供一个容器-->把service层实现类创造出的对象放在容器中-->根据Controller需要的service，在容器中查找对应类型的对象
+
+IoC(Inversion of Contro)控制反转：对象的创建控制权由应用程序转移到外部（容器）
+DI(Dependency Injection)依赖注入：容器为应用程序提供运行时所依赖的资源
+如：controller运行时需要依赖EmpService这个资源
+Bean对象：IoC容器中创建、管理的对象，称之为bean 
+
+
+1. Service层&DAO层的实现类交给IoC容器管理-->加注解@Component
+需要哪个实现类对象就加哪个（需要A-->public class EmpServiceA加@Component，需要B-->把A的@Component去掉，加给B）
+2. 为Controller&Service注入运行时所需要依赖的对象-->加注解@Autowired
+Controller运行时需要EmpService-->private EmpService empService加注解
+EmpServiceA运行时需要EmpDAO-->private EmpDAO empDAO加注解
+
+
+Bean声明
+把某个对象交给IoC容器管理，需要在对应的类上加上如下注解之一：
+@Component：不属于以下三类时用此注解
+@Controller：标注在控制器类(Controller)上
+@Service：标注在业务类(Service)上
+@Repository：标注在数据访问类(DAO)上
+注解value值-->Bean对象名字，如不设置默认类名首字母小写：EmpServiceA-->empServiceA
+
+
+@Aotuwired默认按照类型进行，如果存在多个相同类型的bean则会报错（Spring框架提供）
+如private EmpService empService加注解@Aotuwired，并同时@Component注解public class EmpServiceA & EmpServiceB
+解决：
+@Primary：Bean的优先级（AB同时@Component，A注解@Primary则A生效）
+@Qualifier：@Aotuwired配合@Qualifier指定注入哪个Bean（EmpService同时注解@Autowired和@Qualifier("empServiceA")，则A生效(""中为bean的名字)）
+@Resource：按照名称注入（对EmpService进行注解@Resource(name="empServiceA")，则A生效）（jdk提供）
+
+
+
+
+动态代理
+-->提供interface接口
+
+java.lang.reflect.Proxy类：提供了为对象产生代理对象的方法：
+public static Object new ProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)
+loader：用哪个类加载器去加载生成的代理类
+interfaces：代理类需要实现哪些接口
+h：代理类需要调用的handler(代理要做的事情)
+
+StarService proxy = (StarService) Proxy.newProxyInstance(ProxyUtil.class.getClassLoader(), s.getClass().getInterfaces(), new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                // 用来声明代理对象要干的事情
+                // 参数一：proxy 接收代理对象本身
+                // 参数二：method 代表正在被代理的方法
+                // 参数三：args 代表正在被代理的方法的参数
+                String methodName = method.getName();
+                if (methodName.equals("sing")){System.out.println("准备话筒");}
+                else if(methodName.equals("dance")){
+                    System.out.println("准备场地");
+                }
+
+                // 找真正的star对象来执行被代理的行为
+                Object result = method.invoke(s, args);
+                return result;
+            }
+});
