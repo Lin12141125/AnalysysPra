@@ -13,7 +13,7 @@ Controller中不再new service层的实现类 -->提供一个容器-->把service
 IoC(Inversion of Contro)控制反转：对象的创建控制权由应用程序转移到外部（容器）
 DI(Dependency Injection)依赖注入：容器为应用程序提供运行时所依赖的资源
 如：controller运行时需要依赖EmpService这个资源
-Bean对象：IoC容器中创建、管理的对象，称之为bean 
+Bean对象：IoC容器中创建、管理的对象，称之为bean
 
 
 1. Service层&DAO层的实现类交给IoC容器管理-->加注解@Component
@@ -41,7 +41,6 @@ Bean声明
 
 
 
-
 动态代理
 -->提供interface接口
 
@@ -51,7 +50,7 @@ loader：用哪个类加载器去加载生成的代理类
 interfaces：代理类需要实现哪些接口
 h：代理类需要调用的handler(代理要做的事情)
 
-StarService proxy = (StarService) Proxy.newProxyInstance(ProxyUtil.class.getClassLoader(), s.getClass().getInterfaces(), new InvocationHandler() {
+StarService proxy = (StarService) Proxy.newProxyInstance(ProxyUtil.class.getClassLoader(), s.getClass().getInterfaces(), new InvocationHandler() {		// (StarService) 强转
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 // 用来声明代理对象要干的事情
@@ -69,3 +68,89 @@ StarService proxy = (StarService) Proxy.newProxyInstance(ProxyUtil.class.getClas
                 return result;
             }
 });
+
+
+事务：一组操作的集合，不可分割的工作单位（这些操作要么同时成功，要么同时失败）
+[原子性 隔离性 一致性 持久性]
+开启事务（一组操作开始前，开启事务）：start transaction/begin
+提交事务（该组操作全部成功后提交事务）：commit
+回滚事务（该组操作中任何一个操作出现异常，回滚事务）：rollback
+
+@Transactional
+service层（业务）的方法/类/接口上
+将当前方法交给Spring进行事务管理，方法执行前-->开启事务；成功执行完毕-->提交事务；出现异常-->回滚事务
+（类-->类当中所有的方法都交给spring做事务管理；接口--> 接口下所有的实现类中所有的方法都交给spring进行事务管理）
+@Transactional
+public void delete(Integer id){
+	// 1. 删除部门
+	// 2. 根据部门id删除部门下员工信息
+}
+
+rollbackFor
+默认情况下，只有RuntimeException才回滚异常，rollcackFor用于控制出现何种一场类型回滚事务。
+【如若transaction中设置一个其它类型的异常抛出，则不会正常回滚事务】
+@Transactional (rollbackFor = Exception.class) -->出现所有的异常都会进行事务回滚
+
+propagation
+事务传播行为：当一个事务被另一个事务方法调用时，这个事务应如何进行事务控制。
+@Transactional
+public void a(){
+	// ...
+	userService.b();
+	// ...
+}
+@Transactional (propagation = Propagation.REQUIRED)
+public void b(){
+	// ...
+}
+REQUIRED：默认值，b需要事务，有则加入，无则创建新事务
+REQUIRES_NEW：需要新事务（不希望事务之间相互影响）
+SUPPORTS：支持事务，有则加入，无则在无事务状态中运行
+NOT_SUPPORTED：不支持事务，在无事务状态下运行，如当前已存在事务，则挂起当前事务
+MANDATORY：必须有事务，否则抛出异常
+NEVER：必须无事务，否则抛出异常
+
+
+
+AOP（Aspect Oriented Programming）面向切面编程-->面向特定方法编程
+主流实现-->动态代理
+SpringAOP：Spring框架技术，旨在管理bean对象的过程中，主要通过底层的到那个太代理记之，对特定的个方法进行编程。
+导入依赖-->编写AOP程序
+@Component
+@Aspect
+public class TimeAspect{
+	@Around ("execution(* 包名.类名/接口名.方法名(..))")	// *-->所有（切入点表达式）
+	public Object recordTime(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
+		Object object = proceedingJoinPoint.proceed(); //调用原始方法运行
+	}
+}
+
+proceedingJoinPoint.getSignature()：运行的方法签名
+
+代码无入侵，减少重复代码，效率提高，便于后期维护
+
+JoinPoint 连接点：可以被AOP控制的方法
+Advice 通知：指抽取出来的重复的逻辑，即共性功能（最终体现为一个方法）[如：计算每个service时间]
+PointCut 切入点：匹配切入点的条件，通知仅在切入点方法执行时被应用-->实际被AOP控制的方法
+切入点表达式-->定义了要在什么地方应用通知
+Aspect 切面：切入点+通知，描述通知与切入点的对应关系
+Target 目标对象：通知所应用的对象
+
+
+通知类型
+@Around：环绕通知，通知方法在目标方法前、后都被执行
+@Before：前置通知，通知方法在目标方法前被执行
+@After：后置通知，通知方法在目标方法后被执行，无论是否有异常都会执行
+@AfterReturning：返回后通知，通知方法在目标方法后被执行，有异常不会执行
+@AfterThrowing：异常后通知，通知方法在发生异常后执行
+
+
+AnnotationConfigApplicationContext：Spring 的注解配置容器，用于扫描注解并创建 Bean。
+@Configuration：标注一个类为配置类（相当于以前的 beans.xml）。
+@ComponentScan：告诉 Spring 去扫描哪个包及其子包下的 @Component 注解（去哪里找Bean）
+@EnableAspectJAutoProxy：开启 Spring AOP 代理（自动为匹配的 Bean 生成代理）
+
+
+
+
+
