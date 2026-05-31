@@ -1,0 +1,51 @@
+构建“用户管理系统”后端 API
+
+1. 使用 Spring Initializr 搭建项目。编写一套完整的 CRUD 接口，并确保 JSON 格式规范。
+2. 使用 Validation 组件对 Controller 参数进行校验
+3. 编写 GlobalExceptionHandler，实现全局异常拦截，不再向前端暴露堆栈信息。
+4. 配置 application.yml 连接 MySQL。使用 MyBatis 完成对 User 数据的增删改查。
+5. 分层架构：必须严格遵循 Controller -> Service -> Mapper 的三层架构，严禁在 Controller 中直接操作数据库。
+6. 响应封装：所有 API 接口返回 Result<T> 对象（包含 status, msg, data），规范 API 交互。
+7. 持久化：使用 MyBatis 实现用户信息落盘。
+8. 在项目根目录使用 .gitignore 排除所有 target/ 和 .idea/ 文件夹。
+
+
+Controller Class UserController：接收前端请求-->做出该请求相应的一系列Service步骤
+										|
+		每个Service操作在Mapper中进行相应的一系列sql操作步骤
+			|
+Interface UserMapper数据库操作接口-->UserMapper.xml操作sql
+
+
+user-management/
+├── pom.xml
+├── .gitignore
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/example/usermanagement/
+│   │   │       ├── UserManagementApplication.java	// 启动
+│   │   │       ├── controller/
+│   │   │       │   └── UserController.java
+│   │   │       ├── service/
+│   │   │       │   ├── UserService.java	// Interface
+│   │   │       │   └── impl/
+│   │   │       │       └── UserServiceImpl.java
+│   │   │       ├── mapper/
+│   │   │       │   └── UserMapper.java
+│   │   │       ├── entity/
+│   │   │       │   └── User.java	// 对应数据库 user 表的 Java 对象（ORM 映射）。
+│   │   │       ├── dto/			// 参数校验
+│   │   │       │   ├── UserCreateDTO.java		// 新增用户时前端传来的请求数据（只包含 username, email, age，不含 id）
+│   │   │       │   └── UserUpdateDTO.java		// 修改用户时的请求数据（含 id）
+│   │   │       ├── common/
+│   │   │       │   ├── Result.java		// 统一 API 响应包装 { status, msg, data }
+│   │   │       │   └── ResultCode.java		// 枚举常用状态码和消息（200成功、400参数错误等）
+│   │   │       └── exception/
+│   │   │           ├── BusinessException.java	// 自定义业务异常
+│   │   │           └── GlobalExceptionHandler.java	// 全局捕获异常，返回规范的 Result，屏蔽堆栈信息
+│   │   └── resources/
+│   │       ├── application.yml	// 数据库连接、MyBatis 设置、端口配置
+│   │       └── mapper/
+│   │           └── UserMapper.xml
+│   └── test/test-api.http	// 请求操作测试
