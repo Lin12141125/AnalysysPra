@@ -18,18 +18,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> listAll() {
-        return userMapper.findAll();
+        // Mybatis-Plus 查询所有
+        return userMapper.selectList( null);
     }
 
     @Override
     public User getById(Integer id) {
-        User user=userMapper.findById(id);
+        User user=userMapper.selectById(id);
         if(user==null){throw new BusinessException(404, "用户不存在，id="+id);}
         return user;
     }
 
     @Override
     public User create(User user) {
+        // Mybatis-Plus 插入，会自动将生成的自增 id 设置回 user 对象
         userMapper.insert(user);
         return user;
     }
@@ -37,7 +39,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(User user) {
         getById(user.getId()); // 确保用户存在
-        userMapper.update(user);
+        // MP 根据 id 更新，只更新非 null 字段（如果某些字段为 null，会设置为 null）
+        userMapper.updateById(user);
         return user;
     }
 
