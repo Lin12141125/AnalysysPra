@@ -1,0 +1,76 @@
+### 新增用户 (POST)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "zhangsan",
+  "email": "zhangsan@example.com",
+  "age": 25
+}
+
+
+### 新增用户 (POST)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "somebody",
+  "email": "somebody@example.com",
+  "age": 200
+}
+
+
+
+### 查询用户 (GET)
+GET http://localhost:8080/api/users/1
+
+### 查询用户 (GET)
+GET http://localhost:8080/api/users/2
+
+
+### 查询用户 (GET)
+GET http://localhost:8080/api/users/3
+
+
+### 新增用户 (POST)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "lisi",
+  "email": "lisi@example.com",
+  "age": 24
+}
+
+
+### 删除用户 (DELETE)
+DELETE http://localhost:8080/api/users/1
+
+
+### 修改用户 (PUT)
+PUT http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "id": 2,
+  "username": "change",
+  "email": "lisi@example.com",
+  "age": 24
+}
+
+
+
+### 新增用户 (POST)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "wangwu",
+  "email": "wangwu@example.com",
+  "age": 25
+}
+
+
+### 查看所有用户 (GET)
+GET http://localhost:8080/api/users
+
