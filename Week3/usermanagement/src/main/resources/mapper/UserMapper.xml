@@ -12,11 +12,11 @@
     </resultMap>
 
     <select id="findAll" resultMap="BaseResultMap">
-        SELECT * FROM user
+        SELECT id, username, email, age, created_at FROM user
     </select>
 
     <select id="findById" resultMap="BaseResultMap">
-        SELECT * FROM user WHERE id = #{id}
+        SELECT id, username, email, age, created_at FROM user WHERE id = #{id}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">

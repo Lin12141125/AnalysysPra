@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getById(Integer id) {
         User user=userMapper.findById(id);
-        if(user==null){throw new BusinessException(404, "User doesn't exist, id="+id);}
+        if(user==null){throw new BusinessException(404, "用户不存在，id="+id);}
         return user;
     }
 
