@@ -1,5 +1,6 @@
 package com.example.usermanagement.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.common.Result;
 import com.example.usermanagement.dto.UserCreateDTO;
 import com.example.usermanagement.dto.UserUpdateDTO;
@@ -59,5 +60,14 @@ public class UserController {
     public Result<String> delete(@PathVariable @Min(value = 1, message = "User Id must be at least 1") Integer id){
         userService.deleteById(id);
         return Result.success();
+    }
+
+    @GetMapping("/page")
+    public Result<Page<User>> pageQuery(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword){
+        Page<User> userPage=userService.pageQuery(page, size, keyword);
+        return Result.success(userPage);
     }
 }

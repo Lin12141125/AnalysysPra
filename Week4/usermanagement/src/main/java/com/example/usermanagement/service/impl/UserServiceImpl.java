@@ -1,5 +1,7 @@
 package com.example.usermanagement.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.common.ResultCode;
 import com.example.usermanagement.entity.User;
 import com.example.usermanagement.exception.BusinessException;
@@ -48,5 +50,14 @@ public class UserServiceImpl implements UserService {
     public void deleteById(Integer id) {
         getById(id); // 不存在则抛出异常
         userMapper.deleteById(id);
+    }
+
+    @Override
+    public Page<User> pageQuery(int page, int size, String keyword) {
+        Page<User> pageObj=new Page<>(page, size);
+        LambdaQueryWrapper<User> queryWrapper=new LambdaQueryWrapper<>();
+        if (keyword!=null && !keyword.trim().isEmpty()) queryWrapper.like(User::getUsername, keyword);
+        queryWrapper.orderByDesc(User::getCreatedAt); //按创建时间倒序
+        return userMapper.selectPage(pageObj, queryWrapper);
     }
 }
