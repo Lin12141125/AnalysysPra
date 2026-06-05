@@ -26,7 +26,7 @@ public class RedisCacheConfig {
         GenericJacksonJsonRedisSerializer serializer=GenericJacksonJsonRedisSerializer.builder().build();
         // 配置缓存策略
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(30))
+                .entryTtl(Duration.ofMinutes(30))   // 缓存过期时间30分钟
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer))
                 .disableCachingNullValues();

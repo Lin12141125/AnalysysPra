@@ -1,5 +1,6 @@
 package com.example.usermanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -9,5 +10,7 @@ public class User {
     private String username;
     private String email;
     private Integer age;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }
