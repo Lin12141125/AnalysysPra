@@ -5,7 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7357e35b-f37b-4d7a-abbe-4efc7fe6cd4d" name="更改" comment="update">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/HelloController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/HelloController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/MiniTomcat.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/MiniTomcat.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RequestMapping.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RequestMapping.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner$RouteInfo.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner$RouteInfo.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/UsserController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/UsserController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week4/usermanagement/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Week4/usermanagement/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week4/usermanagement/src/test/test-api.http" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +53,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "appmod/java-upgrade-20260607120554",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "E:/AnalysysPra/AnalysysPra",
@@ -57,6 +66,19 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="AnalysysPra" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="AnalysysPra" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="默认任务">
       <changelist id="7357e35b-f37b-4d7a-abbe-4efc7fe6cd4d" name="更改" comment="" />
@@ -70,6 +92,7 @@
       <workItem from="1780383228117" duration="182000" />
       <workItem from="1780383490434" duration="371000" />
       <workItem from="1780384074596" duration="860000" />
+      <workItem from="1780834288279" duration="738000" />
     </task>
     <task id="LOCAL-00001" summary="delete">
       <option name="closed" value="true" />
