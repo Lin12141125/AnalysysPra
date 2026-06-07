@@ -50,6 +50,13 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    /*
+     * update() & deleteById() 缓存自调用警告：
+     * 调用了getById()-->内部调用this.getById()
+     * --> Spring无法拦截（Spring缓存基于AOP代理实现，只有通过代理对象调用的方法才会应用缓存逻辑，而类内部直接通过this调用不会触发代理）
+     * --> 缓存不会生效：不会先查缓存，而是直接执行方法体，每次都访问数据库（存在性校验直接查数据库）
+     * 【存在性校验逻辑单独抽取成一个私有方法？】
+     */
     @Override
     @CacheEvict(value = "user", key="#id")
     public void deleteById(Integer id) {
