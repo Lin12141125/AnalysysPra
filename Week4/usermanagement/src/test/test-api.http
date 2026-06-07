@@ -52,7 +52,7 @@ Content-Type: application/json
 
 {
   "id": 2,
-  "username": "change",
+  "username": "changed",
   "email": "lisi@example.com",
   "age": 24
 }
