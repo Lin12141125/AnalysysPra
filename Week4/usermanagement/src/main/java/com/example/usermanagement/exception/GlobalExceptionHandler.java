@@ -42,6 +42,7 @@ public class GlobalExceptionHandler {
     // 兜底异常（不暴露堆栈）
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
+        e.printStackTrace();
         return Result.error(500, "系统内部错误，请稍后重试");
     }
 }
