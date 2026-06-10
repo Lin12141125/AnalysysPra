@@ -4,18 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7357e35b-f37b-4d7a-abbe-4efc7fe6cd4d" name="更改" comment="update">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/HelloController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/HelloController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/MiniTomcat.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/MiniTomcat.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RequestMapping.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RequestMapping.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner$RouteInfo.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner$RouteInfo.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/RouteScanner.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week1_TaskCode/bin/project/UsserController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Week1_TaskCode/bin/project/UsserController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week4/usermanagement/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Week4/usermanagement/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week4/usermanagement/src/test/test-api.http" beforeDir="false" />
-    </list>
+    <list default="true" id="7357e35b-f37b-4d7a-abbe-4efc7fe6cd4d" name="更改" comment="update" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -56,7 +45,7 @@
     "git-widget-placeholder": "appmod/java-upgrade-20260607120554",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "E:/AnalysysPra/AnalysysPra",
+    "last_opened_file_path": "E:/AnalysysPra/AnalysysPra/Week4",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -66,6 +55,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\AnalysysPra\AnalysysPra\Week4" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration default="true" type="JetRunConfigurationType">
       <module name="AnalysysPra" />
@@ -93,6 +87,7 @@
       <workItem from="1780383490434" duration="371000" />
       <workItem from="1780384074596" duration="860000" />
       <workItem from="1780834288279" duration="738000" />
+      <workItem from="1780838540441" duration="891000" />
     </task>
     <task id="LOCAL-00001" summary="delete">
       <option name="closed" value="true" />
@@ -126,7 +121,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780384224176</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="update">
+      <option name="closed" value="true" />
+      <created>1780838618918</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1780838618918</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -163,7 +166,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="main" />
+                        <option value="origin/main" />
                       </list>
                     </value>
                   </entry>
