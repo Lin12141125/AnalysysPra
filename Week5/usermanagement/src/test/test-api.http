@@ -1,0 +1,92 @@
+### 新增用户 (POST)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "zhangsan",
+  "email": "zhangsan@example.com",
+  "age": 25
+}
+
+
+### 新增用户 (POST)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "lisi",
+  "email": "lisi@example.com",
+  "age": 24
+}
+
+
+### 新增用户 (POST)（年龄超限，应返回400）
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "somebody",
+  "email": "somebody@example.com",
+  "age": 200
+}
+
+
+### 查询用户 (GET)(第一次 会查数据库并存入Redis)
+GET http://localhost:8080/api/users/1
+
+### 查询用户 (GET)(第二次 应该直接从Redis返回，控制台无SQL输出)
+GET http://localhost:8080/api/users/1
+
+
+### 查询用户 (GET)
+GET http://localhost:8080/api/users/2
+
+
+### 查询用户 (GET)
+GET http://localhost:8080/api/users/3
+
+
+### 修改用户 (PUT)(会清除Redis缓存)
+PUT http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "id": 2,
+  "username": "changed",
+  "email": "lisi@example.com",
+  "age": 24
+}
+
+### 再次查询该用户（修改后第一次查，会重新查数据库并缓存）
+GET http://localhost:8080/api/users/2
+
+
+### 新增用户 (POST)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "zhangwu",
+  "email": "zhangwu@example.com",
+  "age": 25
+}
+
+
+### 分页查询（第1页，每页2条，无关键字）
+GET http://localhost:8080/api/users/page?page=1&size=2
+
+### 分页查询（第2页，每页2条）
+GET http://localhost:8080/api/users/page?page=2&size=2
+
+### 分页查询 + 关键字模糊匹配
+GET http://localhost:8080/api/users/page?page=1&size=5&keyword=zhang
+
+
+### 查看所有用户 (GET)
+GET http://localhost:8080/api/users
+
+### 删除用户 (DELETE)
+DELETE http://localhost:8080/api/users/1
+
+### 再次查询已删除用户（返回404）
+GET http://localhost:8080/api/users/1
