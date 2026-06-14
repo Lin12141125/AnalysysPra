@@ -33,3 +33,8 @@ mybatis-plus:
 
 server:
   port: 8080
+
+# JWT
+jwt:
+  secret: mySecretKeyForJWT12345678901234567890  # 至少32位
+  expiration: 7200000 # 2小时，单位毫秒
