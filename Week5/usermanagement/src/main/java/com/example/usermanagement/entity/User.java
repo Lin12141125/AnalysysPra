@@ -17,6 +17,6 @@ public class User {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
-    // @JsonIgnore
+    // @JsonIgnore // 序列化和反序列化过程中某个字段应该被忽略时使用
     private List<Role> roles; // 接收角色列表（非数据库字段）
 }
