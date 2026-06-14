@@ -1,92 +1,121 @@
-### 新增用户 (POST)
-POST http://localhost:8080/api/users
+### ========== 1. 注册新用户（默认分配 ROLE_USER） ==========
+POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "zhangsan",
-  "email": "zhangsan@example.com",
-  "age": 25
+  "username": "newuser",
+  "password": "123456",
+  "email": "newuser@example.com",
+  "age": 20
 }
 
+### ========== 2. 登录获取 Token ==========
+### 2.1 管理员登录（admin / 123456）
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
 
-### 新增用户 (POST)
+{
+  "username": "admin",
+  "password": "123456"
+}
+
+> {% client.global.set("admin_token", response.body.data); %}
+
+### 2.2 普通用户登录（user / 123456）
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "123456"
+}
+
+> {% client.global.set("user_token", response.body.data); %}
+
+### ========== 3. 管理员权限测试 ==========
+### 3.1 查询所有用户（需要 ADMIN 或 USER）
+GET http://localhost:8080/api/users
+Authorization: Bearer {{admin_token}}
+
+### 3.2 分页查询
+GET http://localhost:8080/api/users/page?page=1&size=5
+Authorization: Bearer {{admin_token}}
+
+### 3.3 根据 ID 查询
+GET http://localhost:8080/api/users/1
+Authorization: Bearer {{admin_token}}
+
+### 3.4 新增用户（仅 ADMIN）
 POST http://localhost:8080/api/users
 Content-Type: application/json
+Authorization: Bearer {{admin_token}}
 
 {
   "username": "lisi",
   "email": "lisi@example.com",
-  "age": 24
+  "age": 28
 }
 
-
-### 新增用户 (POST)（年龄超限，应返回400）
-POST http://localhost:8080/api/users
-Content-Type: application/json
-
-{
-  "username": "somebody",
-  "email": "somebody@example.com",
-  "age": 200
-}
-
-
-### 查询用户 (GET)(第一次 会查数据库并存入Redis)
-GET http://localhost:8080/api/users/1
-
-### 查询用户 (GET)(第二次 应该直接从Redis返回，控制台无SQL输出)
-GET http://localhost:8080/api/users/1
-
-
-### 查询用户 (GET)
-GET http://localhost:8080/api/users/2
-
-
-### 查询用户 (GET)
-GET http://localhost:8080/api/users/3
-
-
-### 修改用户 (PUT)(会清除Redis缓存)
+### 3.5 修改用户（仅 ADMIN）
 PUT http://localhost:8080/api/users
 Content-Type: application/json
+Authorization: Bearer {{admin_token}}
 
 {
   "id": 2,
-  "username": "changed",
-  "email": "lisi@example.com",
-  "age": 24
+  "username": "user_updated",
+  "email": "user_new@example.com",
+  "age": 30
 }
 
-### 再次查询该用户（修改后第一次查，会重新查数据库并缓存）
-GET http://localhost:8080/api/users/2
+### 3.6 删除用户（仅 ADMIN）
+DELETE http://localhost:8080/api/users/2
+Authorization: Bearer {{admin_token}}
 
+### ========== 4. 普通用户权限测试 ==========
+### 4.1 查询用户列表（应成功）
+GET http://localhost:8080/api/users
+Authorization: Bearer {{user_token}}
 
-### 新增用户 (POST)
+### 4.2 尝试新增用户（应返回 403 Forbidden）
 POST http://localhost:8080/api/users
 Content-Type: application/json
+Authorization: Bearer {{user_token}}
 
 {
-  "username": "zhangwu",
-  "email": "zhangwu@example.com",
+  "username": "test",
+  "email": "test@example.com",
   "age": 25
 }
 
+### 4.3 尝试删除用户（应返回 403）
+DELETE http://localhost:8080/api/users/1
+Authorization: Bearer {{user_token}}
 
-### 分页查询（第1页，每页2条，无关键字）
-GET http://localhost:8080/api/users/page?page=1&size=2
+### ========== 5. Token 刷新 ==========
+### 5.1 使用旧 token 获取新 token（需在过期前调用）
+POST http://localhost:8080/api/auth/refresh
+Authorization: Bearer {{admin_token}}
 
-### 分页查询（第2页，每页2条）
-GET http://localhost:8080/api/users/page?page=2&size=2
+> {% client.global.set("new_admin_token", response.body.data); %}
 
-### 分页查询 + 关键字模糊匹配
-GET http://localhost:8080/api/users/page?page=1&size=5&keyword=zhang
+### 5.2 使用新 token 访问接口验证
+GET http://localhost:8080/api/users
+Authorization: Bearer {{new_admin_token}}
 
-
-### 查看所有用户 (GET)
+### ========== 6. 异常场景测试 ==========
+### 6.1 未携带 token（应返回 401）
 GET http://localhost:8080/api/users
 
-### 删除用户 (DELETE)
-DELETE http://localhost:8080/api/users/1
+### 6.2 携带无效 token
+GET http://localhost:8080/api/users
+Authorization: Bearer invalid_token_string
 
-### 再次查询已删除用户（返回404）
-GET http://localhost:8080/api/users/1
+### 6.3 登录失败（错误密码）
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "wrong"
+}

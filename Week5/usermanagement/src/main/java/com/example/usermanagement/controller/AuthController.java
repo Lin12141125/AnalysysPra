@@ -7,7 +7,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +34,7 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // Request / Post?
     @RequestMapping("/login")
     public Result<String> login(@Valid @RequestBody LoginDTO loginDTO){
         // 执行认证
@@ -59,5 +62,30 @@ public class AuthController {
         // 注册成功后返回用户信息（except password）
         created.setPassword(null);
         return Result.success(created);
+    }
+
+    @PostMapping("/refresh")
+    public Result<String> refresh(@RequestHeader("Authorization") String authHeader){
+        // 剩余时间小于10分钟则刷新token
+        if(authHeader==null || !authHeader.startsWith("Bearer ")){
+            return Result.error(400, "Invalid token format");
+        }
+        String oldToken=authHeader.substring(7);
+
+        // 1. 校验旧 token 是否有效（未过期且签名正确）
+        if (!jwtUtil.validateToken(oldToken)) {
+            return Result.error(401, "Invalid or expired token");
+        }
+
+        // 2. 判断剩余有效期是否小于10分钟（600000毫秒）
+        long thresholdMillis = 600000;
+        if(jwtUtil.isTokenExpiringSoon(oldToken, thresholdMillis)){
+            // 剩余时间不足10分钟，刷新 token
+            String newToken = jwtUtil.refreshToken(oldToken);
+            return Result.success(newToken);
+        } else{
+            // 剩余时间充足，不需要刷新， 返回原Token（或错误提示）
+            return Result.error(400, "Token still valid, refresh not needed");
+        }
     }
 }

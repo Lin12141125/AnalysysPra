@@ -2,6 +2,8 @@ package com.example.usermanagement.security;
 
 import org.springframework.stereotype.Component;
 
+import com.example.usermanagement.exception.BusinessException;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -89,5 +91,28 @@ public class JwtUtil {
     public Boolean isTokenExpired(String token) {
         final Date expiration = getClaimFromToken(token, Claims::getExpiration);
         return expiration.before(new Date());
+    }
+
+    // 刷新token
+    public String refreshToken(String oldToken){
+        if(!validateToken(oldToken)){
+            throw new BusinessException(401, "Token 无效或已过期，无法刷新");
+        }
+        String username = getUsernameFromToken(oldToken);
+        Integer userId = getUserIdFromToken(oldToken);
+        String roles = getRolesFromToken(oldToken);
+        return generateToken(userId, username, roles);
+    }
+
+    // 获取token剩余有效时间（秒）
+    public long getRemainingTime(String token) {
+        final Date expiration = getClaimFromToken(token, Claims::getExpiration);
+        return expiration.getTime() - System.currentTimeMillis();
+    }
+
+    // 判断是否需要刷新token（剩余时间小于10分钟）
+    public boolean isTokenExpiringSoon(String token, long thresholdMillis) {
+        long remainingTime = getRemainingTime(token);
+        return remainingTime < thresholdMillis;
     }
 }
