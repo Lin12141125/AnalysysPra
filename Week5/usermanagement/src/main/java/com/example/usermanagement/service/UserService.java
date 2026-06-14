@@ -11,4 +11,7 @@ public interface UserService {
     User update(User user);
     void deleteById(Integer id);
     Page<User> pageQuery(int page, int size, String keyword);
+
+    User findByUsername(String username);
+    User register(User user); // 注册用户（默认分配ROLE_USER角色）
 }

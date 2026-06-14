@@ -2,13 +2,18 @@ package com.example.usermanagement.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.usermanagement.entity.Role;
 import com.example.usermanagement.entity.User;
+import com.example.usermanagement.entity.UserRole;
 import com.example.usermanagement.exception.BusinessException;
+import com.example.usermanagement.mapper.RoleMapper;
 import com.example.usermanagement.mapper.UserMapper;
+import com.example.usermanagement.mapper.UserRoleMapper;
 import com.example.usermanagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +23,15 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private RoleMapper roleMapper;
+
+    @Autowired
+    private UserRoleMapper userRoleMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public List<User> listAll() {
@@ -71,5 +85,35 @@ public class UserServiceImpl implements UserService {
         if (keyword!=null && !keyword.trim().isEmpty()) queryWrapper.like(User::getUsername, keyword);
         queryWrapper.orderByDesc(User::getCreatedAt); //按创建时间倒序
         return userMapper.selectPage(pageObj, queryWrapper);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username);
+        return userMapper.selectOne(wrapper);
+    }
+
+    @Override
+    public User register(User user) {
+        // 1. 检查用户名是否已存在
+        if (findByUsername(user.getUsername()) != null) {
+            throw new BusinessException(400, "用户名已存在");
+        }
+        // 2. 密码加密
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // 3. 插入用户
+        userMapper.insert(user);
+        // 4. 分配默认角色（ROLE_USER）
+        LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
+        roleWrapper.eq(Role::getName, "ROLE_USER");
+        Role userRole = roleMapper.selectOne(roleWrapper);
+        if (userRole != null) {
+            UserRole ur = new UserRole();
+            ur.setUserId(user.getId());
+            ur.setRoleId(userRole.getId());
+            userRoleMapper.insert(ur);
+        }
+        return user;
     }
 }
