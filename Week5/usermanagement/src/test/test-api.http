@@ -38,7 +38,7 @@ GET http://localhost:8080/api/users
 Authorization: Bearer {{admin_token}}
 
 ### 3.2 分页查询
-GET http://localhost:8080/api/users/page?page=1&size=5
+GET http://localhost:8080/api/users/page?page=1&size=2
 Authorization: Bearer {{admin_token}}
 
 ### 3.3 根据 ID 查询
@@ -62,14 +62,14 @@ Content-Type: application/json
 Authorization: Bearer {{admin_token}}
 
 {
-  "id": 2,
+  "id": 4,
   "username": "user_updated",
   "email": "user_new@example.com",
   "age": 30
 }
 
 ### 3.6 删除用户（仅 ADMIN）
-DELETE http://localhost:8080/api/users/2
+DELETE http://localhost:8080/api/users/3
 Authorization: Bearer {{admin_token}}
 
 ### ========== 4. 普通用户权限测试 ==========
@@ -104,7 +104,7 @@ GET http://localhost:8080/api/users
 Authorization: Bearer {{new_admin_token}}
 
 ### ========== 6. 异常场景测试 ==========
-### 6.1 未携带 token（应返回 401）
+### 6.1 未携带 token
 GET http://localhost:8080/api/users
 
 ### 6.2 携带无效 token
