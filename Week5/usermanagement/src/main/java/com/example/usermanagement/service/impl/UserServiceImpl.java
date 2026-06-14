@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
         // 3. 插入数据库
         userMapper.insert(user);
         // 4. 分配默认角色 ROLE_USER（如果不存在则创建）
-        Role defaultRole = getOrCreateRole("ROLE_USER");
+        Role defaultRole = getRoleOrThrow("ROLE_USER");
         UserRole userRole = new UserRole();
         userRole.setUserId(user.getId());
         userRole.setRoleId(defaultRole.getId());
@@ -77,12 +77,12 @@ public class UserServiceImpl implements UserService {
     /**
      * 根据角色名获取角色，如果不存在则报错
      */
-    private Role getOrCreateRole(String roleName) {
+    private Role getRoleOrThrow(String roleName) {
         LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Role::getName, roleName);
         Role role = roleMapper.selectOne(wrapper);
         if (role == null) {
-
+            throw new BusinessException(404, "角色不存在：" + roleName);
         }
         return role;
     }
