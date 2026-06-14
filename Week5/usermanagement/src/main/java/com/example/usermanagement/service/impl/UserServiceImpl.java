@@ -15,7 +15,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -49,10 +51,40 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User create(User user) {
         // Mybatis-Plus 插入，会自动将生成的自增 id 设置回 user 对象
+        // 1. 如果没有密码，设置默认密码并加密
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode("123456"));
+        }
+        // 2. 如果没有创建时间，设置为当前时间
+        if (user.getCreatedAt() == null) {
+            user.setCreatedAt(LocalDateTime.now());
+        }
+        // 3. 插入数据库
         userMapper.insert(user);
+        // 4. 分配默认角色 ROLE_USER（如果不存在则创建）
+        Role defaultRole = getOrCreateRole("ROLE_USER");
+        UserRole userRole = new UserRole();
+        userRole.setUserId(user.getId());
+        userRole.setRoleId(defaultRole.getId());
+        userRoleMapper.insert(userRole);
+
         return user;
+    }
+
+    /**
+     * 根据角色名获取角色，如果不存在则报错
+     */
+    private Role getOrCreateRole(String roleName) {
+        LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Role::getName, roleName);
+        Role role = roleMapper.selectOne(wrapper);
+        if (role == null) {
+
+        }
+        return role;
     }
 
     @Override

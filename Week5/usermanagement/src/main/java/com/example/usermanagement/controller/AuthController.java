@@ -1,5 +1,6 @@
 package com.example.usermanagement.controller;
 
+import com.example.usermanagement.security.SecurityUserDetails;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,10 +43,10 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        // 从 Authentication 中获取 SecurityUserDetails，它已经包含了完整的用户信息（包括角色）
+        SecurityUserDetails userDetails = (SecurityUserDetails) authentication.getPrincipal();
+        User user = userDetails.getUser();  // 这里拿到的 user 已经设置了 roles
 
-        // 获取用户完整信息（包含角色）
-        User user = userService.findByUsername(userDetails.getUsername());
         // 将角色列表拼成字符串存入token(ROLE_ADMIN,ROLE_USER)
         String roles=user.getRoles()==null?"":user.getRoles().stream().map(role -> role.getName()).collect(java.util.stream.Collectors.joining(","));
 

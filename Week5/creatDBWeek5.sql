@@ -51,11 +51,11 @@ INSERT INTO `role` (`name`) VALUES
 -- ========================
 -- 管理员用户（用户名 admin，密码 123456，角色 ROLE_ADMIN）
 INSERT INTO `user` (`username`, `email`, `password`, `age`, `created_at`) VALUES
-('admin', 'admin@example.com', '$2a$10$NkM5C9dXfZzVnMvYv6XwVevJqf7lqLxMZo8Yz8tN7Q.tSqU2fUJjS', 30, NOW());
+('admin', 'admin@example.com', '$2a$10$cH/hYF6UhBKjPU2Ds7.xIO6YFU4NzMT5NXpPwUptTSC80xvcwZ7Z.', 30, NOW());
 
 -- 普通用户（用户名 user，密码 123456，角色 ROLE_USER）
 INSERT INTO `user` (`username`, `email`, `password`, `age`, `created_at`) VALUES
-('user', 'user@example.com', '$2a$10$NkM5C9dXfZzVnMvYv6XwVevJqf7lqLxMZo8Yz8tN7Q.tSqU2fUJjS', 25, NOW());
+('user', 'user@example.com', '$2a$10$cH/hYF6UhBKjPU2Ds7.xIO6YFU4NzMT5NXpPwUptTSC80xvcwZ7Z.', 25, NOW());
 
 -- ========================
 -- 6. 分配角色

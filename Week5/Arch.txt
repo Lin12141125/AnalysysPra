@@ -6,34 +6,33 @@ src/main/java/com/example/usermanagement/
 ├── config/
 │   ├── MybatisPlusConfig.java
 │   ├── RedisCacheConfig.java
-│   └── SecurityConfig.java          【新增】
+│   └── SecurityConfig.java
 ├── controller/
-│   ├── UserController.java          【修改：加权限注解】
-│   └── AuthController.java          【新增】
+│   ├── UserController.java
+│   └── AuthController.java 
 ├── dto/
 │   ├── UserCreateDTO.java
 │   ├── UserUpdateDTO.java
-│   ├── LoginDTO.java                【新增】
-│   └── RegisterDTO.java             【新增】
+│   ├── LoginDTO.java
+│   └── RegisterDTO.java
 ├── entity/
-│   ├── User.java                    【修改：加 password、roles 集合】
-│   ├── Role.java                    【新增】
-│   └── UserRole.java                【新增】
+│   ├── User.java
+│   ├── Role.java
+│   └── UserRole.java
 ├── mapper/
 │   ├── UserMapper.java
-│   ├── RoleMapper.java              【新增】
-│   └── UserRoleMapper.java          【新增】
+│   ├── RoleMapper.java
+│   └── UserRoleMapper.java
 ├── service/
-│   ├── UserService.java             【修改：增加 findByUsername 等方法】
+│   ├── UserService.java
 │   ├── impl/
-│   │   └── UserServiceImpl.java     【修改】
-│   ├── CustomUserDetailsService.java【新增】
-│   └── RoleService.java             【可选，简单查询可不用】
+│   │   └── UserServiceImpl.java
+│   ├── CustomUserDetailsService.java
+│   └── RoleService.java
 ├── security/
-│   ├── JwtUtil.java                 【新增】
-│   ├── JwtAuthenticationFilter.java 【新增】
-│   └── SecurityUserDetails.java     【新增】
-├── exception/
-│   ├── BusinessException.java
-│   └── GlobalExceptionHandler.java
-└── util/                            （若需要可放工具类）
+│   ├── JwtUtil.java
+│   ├── JwtAuthenticationFilter.java
+│   └── SecurityUserDetails.java
+└── exception/
+     ├── BusinessException.java
+     └── GlobalExceptionHandler.java
