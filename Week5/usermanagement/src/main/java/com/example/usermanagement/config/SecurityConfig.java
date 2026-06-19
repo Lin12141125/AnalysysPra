@@ -45,7 +45,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // 允许登录和注册接口无需认证
                 .anyRequest().authenticated() // 其他所有请求都需要认证
-            )
+            ) // 添加自定义异常处理，返回 JSON 而不是重定向/HTML
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .accessDeniedHandler(jwtAccessDeniedHandler)

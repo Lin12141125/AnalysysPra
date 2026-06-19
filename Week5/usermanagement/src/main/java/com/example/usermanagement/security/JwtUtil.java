@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,7 +27,8 @@ public class JwtUtil {
     private Long expiration;
 
     private Key getSigningKey() {
-        byte[] keyBytes = secret.getBytes();
+        // 指定UTF-8编码，确保密钥正确解析
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
