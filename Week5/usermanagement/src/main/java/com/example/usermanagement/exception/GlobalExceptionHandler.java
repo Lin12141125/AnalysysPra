@@ -3,6 +3,7 @@ package com.example.usermanagement.exception;
 import com.example.usermanagement.common.Result;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -43,7 +45,7 @@ public class GlobalExceptionHandler {
     // 兜底异常（不暴露堆栈）
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
-        e.printStackTrace();
+        log.error("系统内部错误", e); // 使用日志框架记录完整的堆栈信息
         return Result.error(500, "系统内部错误，请稍后重试");
     }
 }
