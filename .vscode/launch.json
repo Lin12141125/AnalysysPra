@@ -1,0 +1,63 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "RouteScanner",
+            "request": "launch",
+            "mainClass": "Task2.RouteScanner",
+            "projectName": "Week1"
+        },
+        {
+            "type": "java",
+            "name": "MiniTomcat",
+            "request": "launch",
+            "mainClass": "project.MiniTomcat",
+            "projectName": "Week1"
+        },
+        {
+            "type": "java",
+            "name": "RouteScanner(1)",
+            "request": "launch",
+            "mainClass": "project.RouteScanner",
+            "projectName": "Week1"
+        },
+        {
+            "type": "java",
+            "name": "TestRecord",
+            "request": "launch",
+            "mainClass": "reflection.TestRecord",
+            "projectName": "Week1"
+        },
+        {
+            "type": "java",
+            "name": "UsermanagementApplication",
+            "request": "launch",
+            "mainClass": "com.example.usermanagement.UsermanagementApplication",
+            "projectName": "com.example-usermanagement"
+        },
+        {
+            "type": "java",
+            "name": "MiniTomcat(1)",
+            "request": "launch",
+            "mainClass": "com.project.MiniTomcat",
+            "projectName": "com.project-project"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.task5_7.Main",
+            "projectName": "com.task5_7-task5_7"
+        }
+    ]
+}
