@@ -87,7 +87,12 @@ Authorization: Bearer {{user_token}}
   "age": 25
 }
 
-### 4.3 尝试删除用户（应返回 403）
+### 4.3 根据 ID 查询
+GET http://localhost:8080/api/users/3
+Authorization: Bearer {{user_token}}
+
+
+### 4.4 尝试删除用户（应返回 403）
 DELETE http://localhost:8080/api/users/1
 Authorization: Bearer {{user_token}}
 

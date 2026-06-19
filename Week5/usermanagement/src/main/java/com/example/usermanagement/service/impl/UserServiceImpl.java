@@ -36,10 +36,30 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /* 为单个User对象填充角色列表 */
+    private void fillRoles(User user) {
+        if(user==null) return;
+        // 查询用户关联的角色ID
+        LambdaQueryWrapper<UserRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserRole::getUserId, user.getId());
+        List<UserRole> userRoles = userRoleMapper.selectList(wrapper);
+        if (userRoles.isEmpty()) {
+            user.setRoles(List.of());
+            return;
+        }
+        // 查询角色信息
+        List<Integer> roleIds = userRoles.stream().map(UserRole::getRoleId).toList();
+        List<Role> roles = roleMapper.selectBatchIds(roleIds);
+        user.setRoles(roles);
+    }
+
     @Override
     public List<User> listAll() {
         // Mybatis-Plus 查询所有
-        return userMapper.selectList( null);
+        List<User> users = userMapper.selectList(null);
+        // 为每个用户填充角色列表
+        users.forEach(this::fillRoles);
+        return users;
     }
 
     @Override
@@ -48,6 +68,7 @@ public class UserServiceImpl implements UserService {
     public User getById(Integer id) {
         User user=userMapper.selectById(id);
         if(user==null){throw new BusinessException(404, "用户不存在，id="+id);}
+        fillRoles(user);
         return user;
     }
 
@@ -122,7 +143,9 @@ public class UserServiceImpl implements UserService {
         LambdaQueryWrapper<User> queryWrapper=new LambdaQueryWrapper<>();
         if (keyword!=null && !keyword.trim().isEmpty()) queryWrapper.like(User::getUsername, keyword);
         queryWrapper.orderByDesc(User::getCreatedAt); //按创建时间倒序
-        return userMapper.selectPage(pageObj, queryWrapper);
+        Page<User> result = userMapper.selectPage(pageObj, queryWrapper);
+        result.getRecords().forEach(this::fillRoles);
+        return result;
     }
 
     @Override
