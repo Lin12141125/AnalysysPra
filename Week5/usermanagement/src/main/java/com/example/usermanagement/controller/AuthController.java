@@ -35,8 +35,7 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Request / Post?
-    @RequestMapping("/login")
+    @PostMapping("/login")
     public Result<String> login(@Valid @RequestBody LoginDTO loginDTO){
         // 执行认证
         Authentication authentication = authenticationManager.authenticate(
@@ -55,7 +54,7 @@ public class AuthController {
         return Result.success(token);
     }
 
-    @RequestMapping("/register")
+    @PostMapping("/register")
     public Result<User> register(@Valid @RequestBody RegisterDTO registerDTO){
         User user=new User();
         BeanUtils.copyProperties(registerDTO, user);

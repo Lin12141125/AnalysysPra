@@ -4,7 +4,6 @@ import com.example.usermanagement.common.Result;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -46,10 +45,5 @@ public class GlobalExceptionHandler {
     public Result<Void> handleException(Exception e) {
         e.printStackTrace();
         return Result.error(500, "系统内部错误，请稍后重试");
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public Result<Void> handleAccessDenied(AccessDeniedException e) {
-        return Result.error(403, "权限不足，无法访问");
     }
 }

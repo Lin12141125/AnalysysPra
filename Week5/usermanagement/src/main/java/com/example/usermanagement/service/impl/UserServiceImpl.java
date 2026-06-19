@@ -127,6 +127,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    /*
+     * Tannsactional: register内两步数据库操作：先 userMapper.insert(user) 再 userRoleMapper.insert(ur)
+     * 如果第二步失败了（如角色表找不到 ROLE_USER），第一步的 user 已经入库了，但这个用户没有角色，后续登录会出权限问题。数据库脏数据很难排查。
+     */
     public User register(User user) {
         // 1. 检查用户名是否已存在
         if (findByUsername(user.getUsername()) != null) {
