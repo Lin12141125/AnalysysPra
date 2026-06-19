@@ -56,13 +56,12 @@ Authorization: Bearer {{admin_token}}
   "age": 28
 }
 
-### 3.5 修改用户（仅 ADMIN）
-PUT http://localhost:8080/api/users
+### 3.5 修改用户（仅 ADMIN）—— 使用 RESTful 路径传 ID，请求体只包含需要更新的字段
+PUT http://localhost:8080/api/users/4
 Content-Type: application/json
 Authorization: Bearer {{admin_token}}
 
 {
-  "id": 4,
   "username": "user_updated",
   "email": "user_new@example.com",
   "age": 30
