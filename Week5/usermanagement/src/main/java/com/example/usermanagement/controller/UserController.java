@@ -7,6 +7,7 @@ import com.example.usermanagement.dto.UserUpdateDTO;
 import com.example.usermanagement.entity.User;
 import com.example.usermanagement.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +52,10 @@ public class UserController {
     }
 
     // PUT /api/users 更新用户
-    @PutMapping
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')") // 只有 ADMIN 角色可以更新
-    public Result<User> update(@Valid @RequestBody UserUpdateDTO dto){
-        User user=new User();
-        BeanUtils.copyProperties(dto, user);
-        User updatedUser = userService.update(user);
+    public Result<User> update(@PathVariable @Min(1) Integer id, @Valid @RequestBody UserUpdateDTO dto){
+        User updatedUser = userService.update(id, dto);
         return Result.success(updatedUser);
     }
 
@@ -71,8 +70,8 @@ public class UserController {
     @GetMapping("/page")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')") // ADMIN 或 USER 角色可以查询
     public Result<Page<User>> pageQuery(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer size, //无 @Min/@Max：传入 page=-1&size=10000 可能拖垮数据库
             @RequestParam(required = false) String keyword){
         Page<User> userPage=userService.pageQuery(page, size, keyword);
         return Result.success(userPage);

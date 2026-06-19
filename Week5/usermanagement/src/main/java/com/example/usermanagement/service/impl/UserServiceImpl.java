@@ -2,6 +2,7 @@ package com.example.usermanagement.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.usermanagement.dto.UserUpdateDTO;
 import com.example.usermanagement.entity.Role;
 import com.example.usermanagement.entity.User;
 import com.example.usermanagement.entity.UserRole;
@@ -88,12 +89,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CacheEvict(value = "user", key="#user.id")
-    public User update(User user) {
-        getById(user.getId()); // 确保用户存在
-        // MP 根据 id 更新，只更新非 null 字段（如果某些字段为 null，会设置为 null）
-        userMapper.updateById(user);
-        return user;
+    @CacheEvict(value = "user", key="#id")
+    @Transactional
+    public User update(Integer id, UserUpdateDTO dto) {
+        User existingUser = getById(id); // 确保用户存在
+        // 仅复制非null字段（防止更新时null字段覆盖原值）
+        if (dto.getUsername() != null) existingUser.setUsername(dto.getUsername());
+        if (dto.getEmail() != null) existingUser.setEmail(dto.getEmail());
+        if (dto.getAge() != null) existingUser.setAge(dto.getAge());
+        // 更新数据库
+        userMapper.updateById(existingUser);
+        return existingUser;
     }
 
     /*
