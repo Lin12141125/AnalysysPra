@@ -136,3 +136,34 @@ Authorization: Bearer {{admin_token}}
 ### ========== 9. 任务8：缓存击穿测试准备（热点key预热） ==========
 GET http://localhost:8080/api/users/1
 Authorization: Bearer {{admin_token}}
+
+### ========== 10. Week6：头像上传/下载测试（使用 src/test 下 JPG） ==========
+### 10.1 管理员上传头像（仅 ADMIN）
+### 说明：这里使用同目录下的 QQ图片20260621054733.jpg
+POST http://localhost:8080/api/users/1/avatar
+Authorization: Bearer {{admin_token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="QQ图片20260621054733.jpg"
+Content-Type: image/jpeg
+
+< ./QQ图片20260621054733.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 10.2 下载用户头像（返回图片二进制流）
+GET http://localhost:8080/api/users/1/avatar
+Authorization: Bearer {{admin_token}}
+Accept: image/jpeg
+
+### 10.3 普通用户上传头像（应返回 403）
+POST http://localhost:8080/api/users/1/avatar
+Authorization: Bearer {{user_token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="QQ图片20260621054733.jpg"
+Content-Type: image/jpeg
+
+< ./QQ图片20260621054733.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
