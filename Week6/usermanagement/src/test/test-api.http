@@ -123,3 +123,16 @@ Content-Type: application/json
   "username": "admin",
   "password": "wrong"
 }
+
+### ========== 8. 任务8：缓存穿透测试（缓存空值） ==========
+### 连续两次查询不存在用户，第二次应命中空值缓存并减少DB压力
+GET http://localhost:8080/api/users/999999
+Authorization: Bearer {{admin_token}}
+
+###
+GET http://localhost:8080/api/users/999999
+Authorization: Bearer {{admin_token}}
+
+### ========== 9. 任务8：缓存击穿测试准备（热点key预热） ==========
+GET http://localhost:8080/api/users/1
+Authorization: Bearer {{admin_token}}

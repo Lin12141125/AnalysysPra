@@ -2,6 +2,7 @@ package com.example.usermanagement.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.usermanagement.cache.UserCacheManager;
 import com.example.usermanagement.dto.UserUpdateDTO;
 import com.example.usermanagement.entity.Role;
 import com.example.usermanagement.entity.User;
@@ -12,8 +13,6 @@ import com.example.usermanagement.mapper.UserMapper;
 import com.example.usermanagement.mapper.UserRoleMapper;
 import com.example.usermanagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +34,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserCacheManager userCacheManager;
 
     /* 为单个User对象填充角色列表 */
     private void fillRoles(User user) {
@@ -62,13 +64,25 @@ public class UserServiceImpl implements UserService {
         return users;
     }
 
+    /*
+     * 从数据库加载用户及其角色列表
+     * 作为回调函数传给 UserCacheManager，解耦缓存与业务
+     */
+    private User loadUserFromDbWithRoles(Integer id) {
+        User user = userMapper.selectById(id);
+        if (user != null) {
+            fillRoles(user);
+        }
+        return user;
+    }
+
     @Override
-    @Cacheable(value = "user", key="#id", unless="#result==null")
-    // 执行方法前先查缓存，key为“user::”+id，如果缓存存在则直接返回；否则执行方法并将返回值存入缓存。如果结果为 null，则不缓存
     public User getById(Integer id) {
-        User user=userMapper.selectById(id);
-        if(user==null){throw new BusinessException(404, "用户不存在，id="+id);}
-        fillRoles(user);
+        // 使用缓存管理器查询（应用三种防护）
+        User user = userCacheManager.queryUserById(id, () -> loadUserFromDbWithRoles(id));
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在，id=" + id);
+        }
         return user;
     }
 
@@ -110,9 +124,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CacheEvict(value = "user", key="#id")
     @Transactional
     public User update(Integer id, UserUpdateDTO dto) {
+        // 先查询（走缓存）确保用户存在，并获取原始数据以便更新（存在性校验）
         User existingUser = getById(id); // 确保用户存在
         // 仅复制非null字段（防止更新时null字段覆盖原值）
         if (dto.getUsername() != null) existingUser.setUsername(dto.getUsername());
@@ -120,6 +134,8 @@ public class UserServiceImpl implements UserService {
         if (dto.getAge() != null) existingUser.setAge(dto.getAge());
         // 更新数据库
         userMapper.updateById(existingUser);
+        // 清除缓存，保证下一次查询读到最新数据
+        userCacheManager.evictUser(id);
         return existingUser;
     }
 
@@ -131,10 +147,11 @@ public class UserServiceImpl implements UserService {
      * 【存在性校验逻辑单独抽取成一个私有方法？】
      */
     @Override
-    @CacheEvict(value = "user", key="#id")
+    @Transactional
     public void deleteById(Integer id) {
         getById(id); // 不存在则抛出异常
         userMapper.deleteById(id);
+        userCacheManager.evictUser(id);
     }
 
     @Override

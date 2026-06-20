@@ -66,3 +66,13 @@ knife4j:
     enable-document-manage: true
     enable-host: false
     enable-host-text: false
+
+# 缓存防护参数配置
+cache:
+  user:
+    base-ttl-seconds: 1800  # 基础过期时间s，30分钟
+    null-ttl-seconds: 120    # 空值缓存过期时间s，2分钟
+    random-ttl-seconds: 300  # 随机过期时间s，5分钟
+    lock-ttl-seconds: 10     # 分布式锁持有过期时间s，10秒
+    lock-retry-times: 5      # 获取锁失败重试次数
+    lock-retry-sleep-millis: 50  # 获取锁失败重试间隔ms

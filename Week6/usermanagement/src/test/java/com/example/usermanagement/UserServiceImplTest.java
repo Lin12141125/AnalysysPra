@@ -2,6 +2,7 @@ package com.example.usermanagement;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.usermanagement.cache.UserCacheManager;
 import com.example.usermanagement.entity.Role;
 import com.example.usermanagement.entity.User;
 import com.example.usermanagement.entity.UserRole;
@@ -20,11 +21,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,6 +45,9 @@ public class UserServiceImplTest {
 	@Mock
 	private UserRoleMapper userRoleMapper;
 
+    @Mock
+    private UserCacheManager userCacheManager;
+
 	@InjectMocks
 	private UserServiceImpl userService; // 被测试对象，Mock对象会被注入
 
@@ -58,9 +64,19 @@ public class UserServiceImplTest {
         sampleUser.setAge(25);
     }
 
+    private void mockCachePassThrough() {
+        // 纯Mockito场景下，让缓存层透传到dbLoader，聚焦验证UserServiceImpl逻辑
+        when(userCacheManager.queryUserById(anyInt(), any())).thenAnswer(invocation -> {
+            Supplier<User> dbLoader = invocation.getArgument(1);
+            return dbLoader.get();
+        });
+    }
+
 	@Test
     @DisplayName("getById正常：返回用户并填充角色")
 	void getByIdShouldReturnUserWithRolesWhenUserExists() {
+        mockCachePassThrough();
+
 		UserRole userRole = new UserRole();
 		userRole.setUserId(1);
 		userRole.setRoleId(2);
@@ -90,6 +106,8 @@ public class UserServiceImplTest {
 	@Test
     @DisplayName("getById异常：用户不存在时抛出BusinessException")
 	void getByIdShouldThrowBusinessExceptionWhenUserDoesNotExist() {
+        mockCachePassThrough();
+
 		when(userMapper.selectById(999)).thenReturn(null);
 
 	BusinessException exception = assertThrows(BusinessException.class, () -> userService.getById(999));
@@ -102,6 +120,8 @@ public class UserServiceImplTest {
 	@Test
     @DisplayName("getById正常：用户没有角色记录时返回空角色列表")
 	void getByIdShouldSetEmptyRolesWhenUserHasNoUserRoleRecords() {
+        mockCachePassThrough();
+
 		User user = new User();
 		user.setId(2);
 		user.setUsername("bob");
