@@ -15,6 +15,7 @@ public class User {
     @JsonIgnore
     private String password;
     private Integer age;
+    private String avatar; // 头像文件名（存储为UUID.扩展名-->防冲突）
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

@@ -15,11 +15,21 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -94,5 +104,99 @@ public class UserController {
         @RequestParam(required = false) String keyword){
         Page<User> userPage=userService.pageQuery(page, size, keyword);
         return Result.success(userPage);
+    }
+
+    // 上传头像（仅ADMIN）
+    @PostMapping("/{id}/avatar")
+    @Operation(summary = "上传用户头像", description = "上传用户头像，仅限ADMIN角色操作，支持 jpg/png，最大2MB")
+    @PreAuthorize("hasRole('ADMIN')") // 只有 ADMIN 角色可以上传头像
+    public Result<String> uploadAvatar(
+        @Parameter(description = "用户ID，必须为正整数", required = true, example = "1")
+        @PathVariable @Min(1) Integer id,
+        @Parameter(description = "头像文件", required = true)
+        @RequestParam("file") MultipartFile file) throws IOException{
+        // 检查文件是否为空
+        if (file.isEmpty()) {
+            return Result.error(400, "文件不能为空");
+        }
+
+        // 检查文件类型（只允许jpg/png）
+        String contentType = file.getContentType();
+        if (contentType == null || !(contentType.equals("image/jpeg") || contentType.equals("image/png"))) {
+            return Result.error(400, "仅支持 JPG 或 PNG 格式的图片");
+        }
+
+        // 获取原始文件名，提取扩展名
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        // 若扩展名为空或不是.jpg/.png-->从contentType推断扩展名
+        if (!extension.equalsIgnoreCase(".jpg") && !extension.equalsIgnoreCase(".jpeg") && !extension.equalsIgnoreCase(".png")){
+            // 根据contentType补充扩展名
+            if (contentType.equals("image/jpeg")) {
+                extension = ".jpg";
+            } else if (contentType.equals("image/png")) {
+                extension = ".png";
+            } else {
+                return Result.error(400, "不支持的文件类型");
+            }
+        }
+
+        // 生成UUID文件名，避免冲突
+        String avatarFileName = UUID.randomUUID().toString() + extension;
+        // 保存文件到./uploads目录（相对于项目根目录）
+        String uploadDir = System.getProperty("user.dir") + File.separator + "uploads";
+        File dir = new File(uploadDir);
+        if (!dir.exists()) {
+            boolean mkdirs= dir.mkdirs();
+            if (!mkdirs) {
+                throw new IOException("无法创建上传目录");
+            }
+        }
+        File dest = new File(dir, avatarFileName);
+        file.transferTo(dest);
+        // 更新DB中的avatar字段
+        userService.updateAvatar(id, avatarFileName);
+        return Result.success("头像上传成功，文件名：" + avatarFileName);
+    }
+
+    // 获取用户头像（返回图片流）
+    @GetMapping("/{id}/avatar")
+    @Operation(summary = "获取用户头像", description = "返回图片二进制流，若无头像则返回404")
+    public ResponseEntity<byte[]> getAvatar(
+        @Parameter(description = "用户ID，必须为正整数", required = true, example = "1")
+        @PathVariable @Min(1) Integer id) throws IOException {
+        
+        // 查询用户
+        User user = userService.getById(id);
+        if (user == null) return ResponseEntity.notFound().build();
+        String avatarFileName = user.getAvatar();
+        if(avatarFileName == null || avatarFileName.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 构造文件路径
+        String uploadDir = System.getProperty("user.dir") + File.separator + "uploads";
+        Path filePath = Paths.get(uploadDir, avatarFileName);
+        File file = filePath.toFile();
+        if (!file.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+        // 读取字节文件
+        byte[] fileContent = Files.readAllBytes(filePath);
+        // 确定Content-Type
+        String contentType = "application/octet-stream";
+        if (avatarFileName.toLowerCase().endsWith(".jpg") || avatarFileName.toLowerCase().endsWith(".jpeg")) {
+            contentType = "image/jpeg";
+        } else if (avatarFileName.toLowerCase().endsWith(".png")) {
+            contentType = "image/png";
+        }
+        // 返回响应
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(contentType))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + avatarFileName + "\"")
+            .body(fileContent);
     }
 }

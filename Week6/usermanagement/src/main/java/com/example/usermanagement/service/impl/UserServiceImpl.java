@@ -199,4 +199,14 @@ public class UserServiceImpl implements UserService {
         }
         return user;
     }
+
+    @Override
+    @Transactional
+    public void updateAvatar(Integer id, String avatarFileName){
+        User user = getById(id); // 确保用户存在
+        user.setAvatar(avatarFileName);
+        userMapper.updateById(user);
+        // 清除缓存(头像更新后，getById缓存中的User对象带有旧avatar，需要淘汰）
+        userCacheManager.evictUser(id); 
+    }
 }

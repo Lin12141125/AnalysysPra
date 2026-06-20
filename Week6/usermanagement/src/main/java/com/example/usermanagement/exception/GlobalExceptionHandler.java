@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
@@ -47,5 +48,10 @@ public class GlobalExceptionHandler {
     public Result<Void> handleException(Exception e) {
         log.error("系统内部错误", e); // 使用日志框架记录完整的堆栈信息
         return Result.error(500, "系统内部错误，请稍后重试");
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Result<Void> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        return Result.error(400, "上传文件大小超过限制（最大2MB）");
     }
 }

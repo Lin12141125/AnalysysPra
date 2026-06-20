@@ -15,4 +15,5 @@ public interface UserService {
 
     User findByUsername(String username);
     User register(User user); // 注册用户（默认分配ROLE_USER角色）
+    void updateAvatar(Integer id, String avatarFileName); // 更新用户头像URL
 }
