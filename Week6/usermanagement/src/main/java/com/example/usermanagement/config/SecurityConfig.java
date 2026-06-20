@@ -44,6 +44,13 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 设置Session管理为无状态，因为我们使用JWT进行认证，不需要Session
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // 允许登录和注册接口无需认证
+                .requestMatchers(
+                    "/doc.html", // Knife4j文档入口
+                    "/v3/api-docs/**", // Swagger文档JSON端点
+                    "/swagger-ui/**",
+                    "/swagger-resources/**", // Swagger资源配置端点
+                    "/webjars/**" // Swagger前端静态资源端点
+                ).permitAll() // 放行Knife4j和OpenAPI文档路径，允许Swagger相关接口无需认证
                 .anyRequest().authenticated() // 其他所有请求都需要认证
             ) // 添加自定义异常处理，返回 JSON 而不是重定向/HTML
             .exceptionHandling(exception -> exception

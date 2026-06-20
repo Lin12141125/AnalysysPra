@@ -21,10 +21,13 @@ import com.example.usermanagement.entity.User;
 import com.example.usermanagement.security.JwtUtil;
 import com.example.usermanagement.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "认证管理", description = "用户登录、注册、Token刷新接口")
 public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -36,6 +39,7 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
+    @Operation(summary = "用户登录", description = "根据用户名和密码登录，成功后返回JWT token")
     public Result<String> login(@Valid @RequestBody LoginDTO loginDTO){
         // 执行认证
         Authentication authentication = authenticationManager.authenticate(
@@ -55,6 +59,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "用户注册", description = "注册新用户，默认分配 ROLE_USER 角色")
     public Result<User> register(@Valid @RequestBody RegisterDTO registerDTO){
         User user=new User();
         BeanUtils.copyProperties(registerDTO, user);
@@ -65,6 +70,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Operation(summary = "刷新Token", description = "当Token剩余有效期不足10分钟时，刷新Token，返回新Token")
     public Result<String> refresh(@RequestHeader("Authorization") String authHeader){
         // 剩余时间小于10分钟则刷新token
         if(authHeader==null || !authHeader.startsWith("Bearer ")){

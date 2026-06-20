@@ -57,4 +57,9 @@ public class SecurityUserDetails implements UserDetails {
     public boolean isEnabled() {
         return true; // 账号启用
     }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // 账号未锁定
+    }
 }
