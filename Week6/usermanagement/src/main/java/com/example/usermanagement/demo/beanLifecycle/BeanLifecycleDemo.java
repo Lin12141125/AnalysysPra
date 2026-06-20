@@ -1,4 +1,4 @@
-package com.example.usermanagement.demo;
+package com.example.usermanagement.demo.beanLifecycle;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

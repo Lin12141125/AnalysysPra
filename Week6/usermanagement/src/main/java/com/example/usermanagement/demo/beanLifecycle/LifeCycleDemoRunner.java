@@ -1,4 +1,4 @@
-package com.example.usermanagement.demo;
+package com.example.usermanagement.demo.beanLifecycle;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
