@@ -4,11 +4,12 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Profile;
 // import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component // 让Spring扫描并注册为Bean
-// @Profile("bean-lifecycle-demo")
+@Profile("bean-lifecycle-demo")
 public class BeanLifecycleDemo implements InitializingBean, DisposableBean {
 
     public BeanLifecycleDemo() {

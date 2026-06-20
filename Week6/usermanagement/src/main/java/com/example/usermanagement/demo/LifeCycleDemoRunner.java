@@ -1,9 +1,11 @@
 package com.example.usermanagement.demo;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("bean-lifecycle-demo")
 public class LifeCycleDemoRunner implements CommandLineRunner {
     private final BeanLifecycleDemo beanLifecycleDemo;
 
