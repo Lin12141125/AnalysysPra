@@ -3,6 +3,7 @@ package com.example.usermanagement.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -43,7 +44,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // 禁用CSRF保护，因为我们使用JWT进行认证，不需要CSRF保护(无状态的API)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 设置Session管理为无状态，因为我们使用JWT进行认证，不需要Session
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // 允许登录和注册接口无需认证
+                .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll() // 允许登录和注册接口无需认证
                 .requestMatchers(
                     "/doc.html", // Knife4j文档入口
                     "/v3/api-docs/**", // Swagger文档JSON端点
@@ -51,6 +52,10 @@ public class SecurityConfig {
                     "/swagger-resources/**", // Swagger资源配置端点
                     "/webjars/**" // Swagger前端静态资源端点
                 ).permitAll() // 放行Knife4j和OpenAPI文档路径，允许Swagger相关接口无需认证
+                .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/*/avatar").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/users/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/*", "/api/users/page", "/api/users/*/avatar").hasAnyRole("ADMIN", "USER")
                 .anyRequest().authenticated() // 其他所有请求都需要认证
             ) // 添加自定义异常处理，返回 JSON 而不是重定向/HTML
             .exceptionHandling(exception -> exception

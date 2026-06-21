@@ -191,12 +191,13 @@ public class UserServiceImpl implements UserService {
         LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
         roleWrapper.eq(Role::getName, "ROLE_USER");
         Role userRole = roleMapper.selectOne(roleWrapper);
-        if (userRole != null) {
-            UserRole ur = new UserRole();
-            ur.setUserId(user.getId());
-            ur.setRoleId(userRole.getId());
-            userRoleMapper.insert(ur);
+        if (userRole == null) {
+            throw new BusinessException(404, "角色不存在：ROLE_USER");
         }
+        UserRole ur = new UserRole();
+        ur.setUserId(user.getId());
+        ur.setRoleId(userRole.getId());
+        userRoleMapper.insert(ur);
         return user;
     }
 
