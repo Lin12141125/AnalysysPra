@@ -1,0 +1,169 @@
+### ========== 1. 注册新用户（默认分配 ROLE_USER） ==========
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "password": "123456",
+  "email": "newuser@example.com",
+  "age": 20
+}
+
+### ========== 2. 登录获取 Token ==========
+### 2.1 管理员登录（admin / 123456）
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456"
+}
+
+> {% client.global.set("admin_token", response.body.data); %}
+
+### 2.2 普通用户登录（user / 123456）
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "123456"
+}
+
+> {% client.global.set("user_token", response.body.data); %}
+
+### ========== 3. 管理员权限测试 ==========
+### 3.1 查询所有用户（需要 ADMIN 或 USER）
+GET http://localhost:8080/api/users
+Authorization: Bearer {{admin_token}}
+
+### 3.2 分页查询
+GET http://localhost:8080/api/users/page?page=1&size=2
+Authorization: Bearer {{admin_token}}
+
+### 3.3 根据 ID 查询
+GET http://localhost:8080/api/users/1
+Authorization: Bearer {{admin_token}}
+
+### 3.4 新增用户（仅 ADMIN）
+POST http://localhost:8080/api/users
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "username": "lisi",
+  "email": "lisi@example.com",
+  "age": 28
+}
+
+### 3.5 修改用户（仅 ADMIN）—— 使用 RESTful 路径传 ID，请求体只包含需要更新的字段
+PUT http://localhost:8080/api/users/4
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "username": "user_updated",
+  "email": "user_new@example.com",
+  "age": 30
+}
+
+### 3.6 删除用户（仅 ADMIN）
+DELETE http://localhost:8080/api/users/3
+Authorization: Bearer {{admin_token}}
+
+### ========== 4. 普通用户权限测试 ==========
+### 4.1 查询用户列表（应成功）
+GET http://localhost:8080/api/users
+Authorization: Bearer {{user_token}}
+
+### 4.2 尝试新增用户（应返回 403 Forbidden）
+POST http://localhost:8080/api/users
+Content-Type: application/json
+Authorization: Bearer {{user_token}}
+
+{
+  "username": "test",
+  "email": "test@example.com",
+  "age": 25
+}
+
+### 4.3 根据 ID 查询
+GET http://localhost:8080/api/users/3
+Authorization: Bearer {{user_token}}
+
+
+### 4.4 尝试删除用户（应返回 403）
+DELETE http://localhost:8080/api/users/1
+Authorization: Bearer {{user_token}}
+
+### ========== 5. Token 刷新 ==========
+### 5.1 使用旧 token 获取新 token（需在过期前调用）
+POST http://localhost:8080/api/auth/refresh
+Authorization: Bearer {{admin_token}}
+
+> {% client.global.set("new_admin_token", response.body.data); %}
+
+### 5.2 使用新 token 访问接口验证
+GET http://localhost:8080/api/users
+Authorization: Bearer {{new_admin_token}}
+
+### ========== 6. 异常场景测试 ==========
+### 6.1 未携带 token
+GET http://localhost:8080/api/users
+
+### 6.2 携带无效 token
+GET http://localhost:8080/api/users
+Authorization: Bearer invalid_token_string
+
+### 6.3 登录失败（错误密码）
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "wrong"
+}
+
+### ========== 8. 任务8：缓存穿透测试（缓存空值） ==========
+### 连续两次查询不存在用户，第二次应命中空值缓存并减少DB压力
+GET http://localhost:8080/api/users/999999
+Authorization: Bearer {{admin_token}}
+
+###
+GET http://localhost:8080/api/users/999999
+Authorization: Bearer {{admin_token}}
+
+### ========== 9. 任务8：缓存击穿测试准备（热点key预热） ==========
+GET http://localhost:8080/api/users/1
+Authorization: Bearer {{admin_token}}
+
+### ========== 10. Week6：头像上传/下载测试（使用 src/test 下 JPG） ==========
+### 10.1 管理员上传头像（仅 ADMIN）
+### 说明：这里使用同目录下的 QQ图片20260621054733.jpg
+POST http://localhost:8080/api/users/1/avatar
+Authorization: Bearer {{admin_token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="QQ图片20260621054733.jpg"
+Content-Type: image/jpeg
+
+< ./QQ图片20260621054733.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 10.2 下载用户头像（返回图片二进制流）
+GET http://localhost:8080/api/users/1/avatar
+Authorization: Bearer {{admin_token}}
+Accept: image/jpeg
+
+### 10.3 普通用户上传头像（应返回 403）
+POST http://localhost:8080/api/users/1/avatar
+Authorization: Bearer {{user_token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="QQ图片20260621054733.jpg"
+Content-Type: image/jpeg
+
+< ./QQ图片20260621054733.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
