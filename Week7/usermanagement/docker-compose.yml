@@ -1,7 +1,7 @@
 services:
   mysql:
     image: mysql:8.4
-    container_name: usermanagement-mysql
+    container_name: usermanagementWeek7-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -12,7 +12,7 @@ services:
       - "3306:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data_week7:/var/lib/mysql
       - ./docker/mysql/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
@@ -22,7 +22,7 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    container_name: usermanagement-redis
+    container_name: usermanagementWeek7-redis
     restart: unless-stopped
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_dev_password}
@@ -30,7 +30,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis_data_week7:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping | grep PONG"]
       interval: 10s
@@ -41,7 +41,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: usermanagement-app
+    container_name: usermanagementWeek7-app
     restart: unless-stopped
     depends_on:
       mysql:
@@ -59,9 +59,9 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - app_uploads:/app/uploads
+      - app_uploads_week7:/app/uploads
 
 volumes:
-  mysql_data:
-  redis_data:
-  app_uploads:
+  mysql_data_week7:
+  redis_data_week7:
+  app_uploads_week7:
