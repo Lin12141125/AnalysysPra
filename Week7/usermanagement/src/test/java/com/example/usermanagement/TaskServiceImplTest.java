@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.cache.TaskCacheManager;
 import com.example.usermanagement.dto.TaskCreateDTO;
+import com.example.usermanagement.dto.TaskStatusUpdateDTO;
 import com.example.usermanagement.dto.TaskUpdateDTO;
 import com.example.usermanagement.entity.Project;
 import com.example.usermanagement.entity.ProjectMember;
@@ -298,6 +299,116 @@ public class TaskServiceImplTest {
         assertEquals(403, exception.getCode());
         assertTrue(exception.getMessage().contains("任务负责人"));
         verify(taskMapper, never()).deleteById(anyInt());
+    }
+
+    @Test
+    @DisplayName("状态流转：OWNER可以将TODO流转为IN_PROGRESS")
+    void updateTaskStatusShouldTransitTodoToInProgressWhenCurrentUserIsOwner() {
+        TaskStatusUpdateDTO dto = new TaskStatusUpdateDTO();
+        dto.setStatus("IN_PROGRESS");
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(ownerMember);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+        when(taskMapper.selectTaskVOById(1)).thenReturn(taskVO(1, "task1", "IN_PROGRESS", "MEDIUM", 2));
+
+        TaskVO result = taskService.updateTaskStatus(1, dto, 1);
+
+        assertEquals("IN_PROGRESS", result.getStatus());
+        verify(taskMapper).updateById(any(Task.class));
+        verify(taskCacheManager).evictTaskList(1);
+    }
+
+    @Test
+    @DisplayName("状态流转：任务负责人可以将IN_PROGRESS流转为IN_REVIEW")
+    void updateTaskStatusShouldTransitInProgressToInReviewWhenMemberIsAssignee() {
+        assignedTask.setStatus("IN_PROGRESS");
+        TaskStatusUpdateDTO dto = new TaskStatusUpdateDTO();
+        dto.setStatus("IN_REVIEW");
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(normalMember);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+        when(taskMapper.selectTaskVOById(1)).thenReturn(taskVO(1, "task1", "IN_REVIEW", "MEDIUM", 2));
+
+        TaskVO result = taskService.updateTaskStatus(1, dto, 2);
+
+        assertEquals("IN_REVIEW", result.getStatus());
+        verify(taskMapper).updateById(any(Task.class));
+        verify(taskCacheManager).evictTaskList(1);
+    }
+
+    @Test
+    @DisplayName("状态流转：OWNER可以将IN_REVIEW流转为DONE")
+    void updateTaskStatusShouldTransitInReviewToDoneWhenCurrentUserIsOwner() {
+        assignedTask.setStatus("IN_REVIEW");
+        TaskStatusUpdateDTO dto = new TaskStatusUpdateDTO();
+        dto.setStatus("DONE");
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(ownerMember);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+        when(taskMapper.selectTaskVOById(1)).thenReturn(taskVO(1, "task1", "DONE", "MEDIUM", 2));
+
+        TaskVO result = taskService.updateTaskStatus(1, dto, 1);
+
+        assertEquals("DONE", result.getStatus());
+        verify(taskMapper).updateById(any(Task.class));
+        verify(taskCacheManager).evictTaskList(1);
+    }
+
+    @Test
+    @DisplayName("状态流转：不能从TODO直接流转为DONE")
+    void updateTaskStatusShouldThrowWhenTransitSkipsIntermediateStatus() {
+        TaskStatusUpdateDTO dto = new TaskStatusUpdateDTO();
+        dto.setStatus("DONE");
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(ownerMember);
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> taskService.updateTaskStatus(1, dto, 1));
+
+        assertEquals(400, exception.getCode());
+        assertTrue(exception.getMessage().contains("顺序流转"));
+        verify(taskMapper, never()).updateById(any(Task.class));
+        verify(taskCacheManager, never()).evictTaskList(anyInt());
+    }
+
+    @Test
+    @DisplayName("状态流转：DONE状态不能继续流转")
+    void updateTaskStatusShouldThrowWhenCurrentStatusIsDone() {
+        assignedTask.setStatus("DONE");
+        TaskStatusUpdateDTO dto = new TaskStatusUpdateDTO();
+        dto.setStatus("DONE");
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(ownerMember);
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> taskService.updateTaskStatus(1, dto, 1));
+
+        assertEquals(400, exception.getCode());
+        assertTrue(exception.getMessage().contains("DONE流转到DONE"));
+        verify(taskMapper, never()).updateById(any(Task.class));
+        verify(taskCacheManager, never()).evictTaskList(anyInt());
+    }
+
+    @Test
+    @DisplayName("状态流转：非OWNER且非任务负责人不能更新状态")
+    void updateTaskStatusShouldThrowWhenCurrentUserCannotModifyTask() {
+        TaskStatusUpdateDTO dto = new TaskStatusUpdateDTO();
+        dto.setStatus("IN_PROGRESS");
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(otherMember);
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> taskService.updateTaskStatus(1, dto, 4));
+
+        assertEquals(403, exception.getCode());
+        assertTrue(exception.getMessage().contains("任务负责人"));
+        verify(taskMapper, never()).updateById(any(Task.class));
     }
 
     private void mockTaskPageCachePassThrough() {
