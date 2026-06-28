@@ -1,6 +1,7 @@
 package com.example.usermanagement.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import com.example.usermanagement.mapper.ProjectMapper;
 import com.example.usermanagement.mapper.ProjectMemberMapper;
 import com.example.usermanagement.mapper.TaskMapper;
 import com.example.usermanagement.mapper.UserMapper;
+import com.example.usermanagement.service.TaskAttachmentService;
 import com.example.usermanagement.service.TaskService;
 import com.example.usermanagement.vo.TaskVO;
 
@@ -48,6 +50,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private TaskCacheManager taskCacheManager;
+
+    @Autowired
+    private TaskAttachmentService taskAttachmentService;
 
     @Override
     @Transactional
@@ -135,7 +140,9 @@ public class TaskServiceImpl implements TaskService {
         ProjectMember currentMember = getProjectMemberOrThrow(task.getProjectId(), currentUserId);
 
         checkCanModifyTask(task, currentMember, currentUserId);
+    List<String> attachmentFilenames = taskAttachmentService.listStoredFilenamesByTaskId(taskId);
         taskMapper.deleteById(taskId);
+        taskAttachmentService.deletePhysicalFiles(attachmentFilenames);
         taskCacheManager.evictTaskList(task.getProjectId());
     }
 

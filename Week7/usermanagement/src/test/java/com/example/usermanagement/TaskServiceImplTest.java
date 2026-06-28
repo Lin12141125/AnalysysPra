@@ -16,6 +16,7 @@ import com.example.usermanagement.mapper.ProjectMapper;
 import com.example.usermanagement.mapper.ProjectMemberMapper;
 import com.example.usermanagement.mapper.TaskMapper;
 import com.example.usermanagement.mapper.UserMapper;
+import com.example.usermanagement.service.TaskAttachmentService;
 import com.example.usermanagement.service.impl.TaskServiceImpl;
 import com.example.usermanagement.vo.TaskVO;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +58,9 @@ public class TaskServiceImplTest {
 
     @Mock
     private TaskCacheManager taskCacheManager;
+
+    @Mock
+    private TaskAttachmentService taskAttachmentService;
 
     @InjectMocks
     private TaskServiceImpl taskService;
@@ -280,11 +284,14 @@ public class TaskServiceImplTest {
     void deleteTaskShouldSucceedWhenCurrentUserIsOwner() {
         when(taskMapper.selectById(1)).thenReturn(assignedTask);
         when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(ownerMember);
+        when(taskAttachmentService.listStoredFilenamesByTaskId(1)).thenReturn(List.of("task-file.txt", "task-image.jpg"));
         when(taskMapper.deleteById(1)).thenReturn(1);
 
         taskService.deleteTask(1, 1);
 
+        verify(taskAttachmentService).listStoredFilenamesByTaskId(1);
         verify(taskMapper).deleteById(1);
+        verify(taskAttachmentService).deletePhysicalFiles(List.of("task-file.txt", "task-image.jpg"));
         verify(taskCacheManager).evictTaskList(1);
     }
 
@@ -300,6 +307,8 @@ public class TaskServiceImplTest {
         assertEquals(403, exception.getCode());
         assertTrue(exception.getMessage().contains("任务负责人"));
         verify(taskMapper, never()).deleteById(anyInt());
+        verify(taskAttachmentService, never()).listStoredFilenamesByTaskId(anyInt());
+        verify(taskAttachmentService, never()).deletePhysicalFiles(any());
     }
 
     @Test

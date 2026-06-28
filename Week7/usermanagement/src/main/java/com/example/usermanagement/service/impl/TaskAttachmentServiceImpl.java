@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,10 @@ import com.example.usermanagement.service.TaskAttachmentService;
 import com.example.usermanagement.vo.TaskAttachmentDownloadVO;
 import com.example.usermanagement.vo.TaskAttachmentVO;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class TaskAttachmentServiceImpl implements TaskAttachmentService {
     private static final String ROLE_VIEWER = "VIEWER";
     private static final long MAX_ATTACHMENT_SIZE = 10L * 1024 * 1024; // 10M
@@ -131,6 +135,42 @@ public class TaskAttachmentServiceImpl implements TaskAttachmentService {
             throw new BusinessException(500, "附件路径异常");
         } catch (IOException e) {
             throw new BusinessException(500, "读取附件失败");
+        }
+    }
+
+    @Override
+    public List<String> listStoredFilenamesByTaskId(Integer taskId) {
+        return taskAttachmentMapper.selectFilenamesByTaskId(taskId);
+    }
+
+    @Override
+    public List<String> listStoredFilenamesByProjectId(Integer projectId) {
+        return taskAttachmentMapper.selectFilenamesByProjectId(projectId);
+    }
+
+    @Override
+    public void deletePhysicalFiles(List<String> filenames) {
+        if (filenames == null || filenames.isEmpty()) {
+            return;
+        }
+
+        Path root = getAttachmentRootPath();
+        for (String filename : filenames) {
+            if (!StringUtils.hasText(filename)) {
+                continue;
+            }
+
+            Path filePath = root.resolve(filename).normalize();
+            if (!filePath.startsWith(root)) {
+                log.warn("跳过异常附件路径清理：{}", filename);
+                continue;
+            }
+
+            try {
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                log.warn("删除附件文件失败：{}", filePath, e);
+            }
         }
     }
 

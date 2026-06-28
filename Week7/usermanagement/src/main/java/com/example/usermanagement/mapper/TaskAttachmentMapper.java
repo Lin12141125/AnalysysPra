@@ -1,5 +1,7 @@
 package com.example.usermanagement.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -25,4 +27,15 @@ public interface TaskAttachmentMapper extends BaseMapper<TaskAttachment> {
             WHERE ta.id = #{id}
             """)
     TaskAttachmentVO selectAttachmentVOById(@Param("id") Integer id);
+
+    @Select("SELECT filename FROM task_attachment WHERE task_id = #{taskId}")
+    List<String> selectFilenamesByTaskId(@Param("taskId") Integer taskId);
+
+    @Select("""
+            SELECT ta.filename
+            FROM task_attachment ta
+            INNER JOIN task t ON ta.task_id = t.id
+            WHERE t.project_id = #{projectId}
+            """)
+    List<String> selectFilenamesByProjectId(@Param("projectId") Integer projectId);
 }

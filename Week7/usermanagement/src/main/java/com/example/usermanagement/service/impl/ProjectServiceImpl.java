@@ -22,6 +22,7 @@ import com.example.usermanagement.mapper.ProjectMapper;
 import com.example.usermanagement.mapper.ProjectMemberMapper;
 import com.example.usermanagement.mapper.UserMapper;
 import com.example.usermanagement.service.ProjectService;
+import com.example.usermanagement.service.TaskAttachmentService;
 import com.example.usermanagement.vo.ProjectDetailVO;
 import com.example.usermanagement.vo.ProjectListVO;
 import com.example.usermanagement.vo.ProjectMemberVO;
@@ -44,6 +45,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private TaskAttachmentService taskAttachmentService;
 
     // 新建项目
     @Override
@@ -111,7 +115,9 @@ public class ProjectServiceImpl implements ProjectService {
         checkOwner(projectId, currentUserId);
 
         List<ProjectMemberVO> members = projectMemberMapper.selectMembersByProjectId(projectId);
+        List<String> attachmentFilenames = taskAttachmentService.listStoredFilenamesByProjectId(projectId);
         projectMapper.deleteById(projectId);
+        taskAttachmentService.deletePhysicalFiles(attachmentFilenames);
 
         projectCacheManager.evictProject(projectId);
         for (ProjectMemberVO member : members) {

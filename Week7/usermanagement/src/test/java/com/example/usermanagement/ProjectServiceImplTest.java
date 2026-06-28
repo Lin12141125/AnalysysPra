@@ -10,6 +10,7 @@ import com.example.usermanagement.entity.ProjectMember;
 import com.example.usermanagement.exception.BusinessException;
 import com.example.usermanagement.mapper.ProjectMapper;
 import com.example.usermanagement.mapper.ProjectMemberMapper;
+import com.example.usermanagement.service.TaskAttachmentService;
 import com.example.usermanagement.service.impl.ProjectServiceImpl;
 import com.example.usermanagement.vo.ProjectDetailVO;
 import com.example.usermanagement.vo.ProjectListVO;
@@ -48,6 +49,9 @@ public class ProjectServiceImplTest {
 
     @Mock
     private ProjectCacheManager projectCacheManager;
+
+    @Mock
+    private TaskAttachmentService taskAttachmentService;
 
     @InjectMocks
     private ProjectServiceImpl projectService;
@@ -236,11 +240,14 @@ public class ProjectServiceImplTest {
         when(projectMapper.selectById(1)).thenReturn(project);
         when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(ownerMember);
         when(projectMemberMapper.selectMembersByProjectId(1)).thenReturn(List.of(ownerVO(), memberVO()));
+        when(taskAttachmentService.listStoredFilenamesByProjectId(1)).thenReturn(List.of("project-file.txt", "project-image.jpg"));
         when(projectMapper.deleteById(1)).thenReturn(1);
 
         projectService.deleteProject(1, 1);
 
+        verify(taskAttachmentService).listStoredFilenamesByProjectId(1);
         verify(projectMapper).deleteById(1);
+        verify(taskAttachmentService).deletePhysicalFiles(List.of("project-file.txt", "project-image.jpg"));
         verify(projectCacheManager).evictProject(1);
         verify(projectCacheManager).evictMyProjects(1);
         verify(projectCacheManager).evictMyProjects(2);
@@ -258,6 +265,8 @@ public class ProjectServiceImplTest {
         assertEquals(403, exception.getCode());
         assertTrue(exception.getMessage().contains("OWNER"));
         verify(projectMapper, never()).deleteById(anyInt());
+        verify(taskAttachmentService, never()).listStoredFilenamesByProjectId(anyInt());
+        verify(taskAttachmentService, never()).deletePhysicalFiles(any());
     }
 
     private void mockProjectDetailCachePassThrough() {
