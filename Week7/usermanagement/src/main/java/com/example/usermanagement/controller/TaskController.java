@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.common.Result;
+import com.example.usermanagement.dto.TaskAssignDTO;
 import com.example.usermanagement.dto.TaskCreateDTO;
 import com.example.usermanagement.dto.TaskStatusUpdateDTO;
 import com.example.usermanagement.dto.TaskUpdateDTO;
@@ -68,7 +69,7 @@ public class TaskController {
     }
 
     @PutMapping("/api/tasks/{id}")
-    @Operation(summary = "更新任务", description = "更新任务信息，只有项目的OWNER和任务负责人可以更新任务，VIEWER只读")
+    @Operation(summary = "更新任务", description = "更新任务信息基本信息和优先级，只有项目的OWNER和任务负责人可以更新任务，VIEWER只读")
     public Result<TaskVO> updateTask(
             @Parameter(description = "任务ID，必须为正整数", required = true, example = "1")
             @PathVariable @Min(1) Integer id,
@@ -96,6 +97,17 @@ public class TaskController {
             @Valid @RequestBody TaskStatusUpdateDTO dto) {
         Integer currentUserId = getCurrentUserId();
         TaskVO task = taskService.updateTaskStatus(id, dto, currentUserId);
+        return Result.success(task);
+    }
+
+    @PutMapping("/api/tasks/{id}/assign")
+    @Operation(summary = "分配任务", description = "将任务分配给项目成员，只有项目OWNER可以分配或重新分配任务负责人，VIEWER只读")
+    public Result<TaskVO> assignTask(
+            @Parameter(description = "任务ID，必须为正整数", required = true, example = "1")
+            @PathVariable @Min(1) Integer id,
+            @Valid @RequestBody TaskAssignDTO dto) {
+        Integer currentUserId = getCurrentUserId();
+        TaskVO task = taskService.assignTask(id, dto, currentUserId);
         return Result.success(task);
     }
 

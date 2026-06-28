@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.cache.TaskCacheManager;
+import com.example.usermanagement.dto.TaskAssignDTO;
 import com.example.usermanagement.dto.TaskCreateDTO;
 import com.example.usermanagement.dto.TaskStatusUpdateDTO;
 import com.example.usermanagement.dto.TaskUpdateDTO;
@@ -111,11 +112,11 @@ public class TaskServiceImpl implements TaskService {
         ProjectMember currentMember = getProjectMemberOrThrow(task.getProjectId(), currentUserId);
 
         checkCanModifyTask(task, currentMember, currentUserId);
-
-        if(dto.getAssigneeId() !=null){
-            checkAssigneeIsProjectMember(task.getProjectId(), dto.getAssigneeId());
-            task.setAssigneeId(dto.getAssigneeId());
-        }
+        // assign逻辑转至单独接口
+        // if(dto.getAssigneeId() !=null){
+        //     checkAssigneeIsProjectMember(task.getProjectId(), dto.getAssigneeId());
+        //     task.setAssigneeId(dto.getAssigneeId());
+        // }
         if(dto.getTitle() !=null) task.setTitle(dto.getTitle());
         if(dto.getDescription() !=null) task.setDescription(dto.getDescription());
         if(dto.getPriority() !=null) task.setPriority(dto.getPriority());
@@ -161,7 +162,23 @@ public class TaskServiceImpl implements TaskService {
         taskCacheManager.evictTaskList(task.getProjectId());
 
         return getTaskVOOrThrow(task.getId());
+    }
 
+    @Override
+    @Transactional
+    public TaskVO assignTask(Integer taskId, TaskAssignDTO dto, Integer currentUserId){
+        Task task=getTaskOrThrow(taskId);
+        ProjectMember currentMember = getProjectMemberOrThrow(task.getProjectId(), currentUserId);
+
+        checkCanAssignTask(currentMember);
+        checkAssigneeIsProjectMember(task.getProjectId(), dto.getAssigneeId());
+
+        task.setAssigneeId(dto.getAssigneeId());
+        task.setUpdatedAt(LocalDateTime.now());
+        taskMapper.updateById(task);
+        taskCacheManager.evictTaskList(task.getProjectId());
+
+        return getTaskVOOrThrow(task.getId());
     }
 
     private Project getProjectOrThrow(Integer projectId) {
@@ -237,6 +254,13 @@ public class TaskServiceImpl implements TaskService {
             return; // 项目成员可以修改自己被指派的任务
         }
         throw new BusinessException(403, "只有项目OWNER或任务负责人可以修改/删除该任务");
+    }
+
+    private void checkCanAssignTask(ProjectMember currentMember) {
+        if (ROLE_OWNER.equals(currentMember.getRole())) {
+            return;
+        }
+        throw new BusinessException(403, "只有项目OWNER可以分配任务负责人");
     }
 
     private TaskStatus parseTaskStatus(String status) {

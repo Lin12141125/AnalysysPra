@@ -25,9 +25,10 @@ public class TaskUpdateDTO {
     @Schema(description = "任务优先级", example = "HIGH")
     private String priority;
 
-    @Positive(message = "负责人ID必须为正整数")
-    @Schema(description = "负责人用户ID，必须是项目成员", example = "2")
-    private Integer assigneeId;
+    // 分配单独assign接口
+    // @Positive(message = "负责人ID必须为正整数")
+    // @Schema(description = "负责人用户ID，必须是项目成员", example = "2")
+    // private Integer assigneeId;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Schema(description = "截止时间", example = "2026-07-03 18:00:00")

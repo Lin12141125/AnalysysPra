@@ -3,6 +3,7 @@ package com.example.usermanagement;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.cache.TaskCacheManager;
+import com.example.usermanagement.dto.TaskAssignDTO;
 import com.example.usermanagement.dto.TaskCreateDTO;
 import com.example.usermanagement.dto.TaskStatusUpdateDTO;
 import com.example.usermanagement.dto.TaskUpdateDTO;
@@ -409,6 +410,50 @@ public class TaskServiceImplTest {
         assertEquals(403, exception.getCode());
         assertTrue(exception.getMessage().contains("任务负责人"));
         verify(taskMapper, never()).updateById(any(Task.class));
+    }
+
+    @Test
+    @DisplayName("分配任务：OWNER可以重新分配负责人")
+    void assignTaskShouldSucceedWhenCurrentUserIsOwner() {
+        TaskAssignDTO dto = new TaskAssignDTO();
+        dto.setAssigneeId(4);
+
+        User assignee = new User();
+        assignee.setId(4);
+        assignee.setUsername("member4");
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class)))
+                .thenReturn(ownerMember)
+                .thenReturn(otherMember);
+        when(userMapper.selectById(4)).thenReturn(assignee);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+        when(taskMapper.selectTaskVOById(1)).thenReturn(taskVO(1, "task1", "TODO", "MEDIUM", 4));
+
+        TaskVO result = taskService.assignTask(1, dto, 1);
+
+        assertEquals(4, result.getAssigneeId());
+        verify(taskMapper).updateById(any(Task.class));
+        verify(taskCacheManager).evictTaskList(1);
+    }
+
+    @Test
+    @DisplayName("分配任务：当前负责人MEMBER不能重新分配负责人")
+    void assignTaskShouldThrowWhenCurrentUserIsAssigneeMember() {
+        TaskAssignDTO dto = new TaskAssignDTO();
+        dto.setAssigneeId(4);
+
+        when(taskMapper.selectById(1)).thenReturn(assignedTask);
+        when(projectMemberMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(normalMember);
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> taskService.assignTask(1, dto, 2));
+
+        assertEquals(403, exception.getCode());
+        assertTrue(exception.getMessage().contains("只有项目OWNER可以分配任务负责人"));
+        verify(userMapper, never()).selectById(anyInt());
+        verify(taskMapper, never()).updateById(any(Task.class));
+        verify(taskCacheManager, never()).evictTaskList(anyInt());
     }
 
     private void mockTaskPageCachePassThrough() {
