@@ -10,11 +10,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.cache.TaskCacheManager;
 import com.example.usermanagement.dto.TaskCreateDTO;
+import com.example.usermanagement.dto.TaskStatusUpdateDTO;
 import com.example.usermanagement.dto.TaskUpdateDTO;
 import com.example.usermanagement.entity.Project;
 import com.example.usermanagement.entity.ProjectMember;
 import com.example.usermanagement.entity.Task;
 import com.example.usermanagement.entity.User;
+import com.example.usermanagement.enums.TaskStatus;
 import com.example.usermanagement.exception.BusinessException;
 import com.example.usermanagement.mapper.ProjectMapper;
 import com.example.usermanagement.mapper.ProjectMemberMapper;
@@ -28,7 +30,7 @@ public class TaskServiceImpl implements TaskService {
     private static final String ROLE_OWNER = "OWNER";
     private static final String ROLE_MEMBER = "MEMBER";
     private static final String ROLE_VIEWER = "VIEWER";
-    private static final String STATUS_TODO = "TODO";
+    private static final String STATUS_TODO = TaskStatus.TODO.getCode();
     private static final String DEFAULT_PRIORITY = "MEDIUM";
 
     @Autowired
@@ -136,6 +138,32 @@ public class TaskServiceImpl implements TaskService {
         taskCacheManager.evictTaskList(task.getProjectId());
     }
 
+    @Override
+    @Transactional
+    public TaskVO updateTaskStatus(Integer taskId, TaskStatusUpdateDTO dto, Integer currentUserId) {
+        Task task = getTaskOrThrow(taskId);
+        ProjectMember currentMember = getProjectMemberOrThrow(task.getProjectId(), currentUserId);
+
+        checkCanModifyTask(task, currentMember, currentUserId);
+
+        TaskStatus currentStatus=parseTaskStatus(task.getStatus()); // 当前任务状态
+        TaskStatus targetStatus=parseTaskStatus(dto.getStatus()); // 目标任务状态
+
+        // 检查状态流转是否合法
+        if(!currentStatus.canTransitTo(targetStatus)){
+            throw new BusinessException(400, "任务状态只能按TODO->IN_PROGRESS->IN_REVIEW->DONE的顺序流转,不能从" + currentStatus.getCode() + "流转到" + targetStatus.getCode());
+        }
+        // 若合法则更新状态
+        task.setStatus(targetStatus.getCode());
+        task.setUpdatedAt(LocalDateTime.now());
+        taskMapper.updateById(task);
+        // 清除缓存
+        taskCacheManager.evictTaskList(task.getProjectId());
+
+        return getTaskVOOrThrow(task.getId());
+
+    }
+
     private Project getProjectOrThrow(Integer projectId) {
         Project project = projectMapper.selectById(projectId);
         if (project == null) {
@@ -209,5 +237,13 @@ public class TaskServiceImpl implements TaskService {
             return; // 项目成员可以修改自己被指派的任务
         }
         throw new BusinessException(403, "只有项目OWNER或任务负责人可以修改/删除该任务");
+    }
+
+    private TaskStatus parseTaskStatus(String status) {
+        try {
+            return TaskStatus.fromCode(status);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(400, "任务状态无效，任务状态只能是TODO、IN_PROGRESS、IN_REVIEW或DONE");
+        }
     }
 }

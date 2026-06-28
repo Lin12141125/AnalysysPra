@@ -2,6 +2,7 @@ package com.example.usermanagement.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.dto.TaskCreateDTO;
+import com.example.usermanagement.dto.TaskStatusUpdateDTO;
 import com.example.usermanagement.dto.TaskUpdateDTO;
 import com.example.usermanagement.vo.TaskVO;
 
@@ -18,4 +19,6 @@ public interface TaskService {
     );
     TaskVO updateTask(Integer taskId, TaskUpdateDTO dto, Integer currentUserId);
     void deleteTask(Integer taskId, Integer currentUserId);
+
+    TaskVO updateTaskStatus(Integer taskId, TaskStatusUpdateDTO dto, Integer currentUserId);
 }

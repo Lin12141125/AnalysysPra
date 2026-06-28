@@ -45,11 +45,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Autowired
     private UserMapper userMapper;
 
+    // 新建项目
     @Override
     @Transactional
     public ProjectDetailVO createProject(ProjectCreateDTO dto, Integer currentUserId) {
         LocalDateTime now = LocalDateTime.now();
-
+        // 填充字段
         Project project = new Project();
         project.setName(dto.getName());
         project.setDescription(dto.getDescription());
@@ -57,28 +58,32 @@ public class ProjectServiceImpl implements ProjectService {
         project.setCreatedAt(now);
         project.setUpdatedAt(now);
         projectMapper.insert(project);
-
+        
+        // 更新项目成员表，当前用户是OWNER
         ProjectMember ownerMember = new ProjectMember();
         ownerMember.setProjectId(project.getId());
         ownerMember.setUserId(currentUserId);
         ownerMember.setRole(ROLE_OWNER);
         projectMemberMapper.insert(ownerMember);
-
+        // 清除当前用户的项目列表缓存
         projectCacheManager.evictMyProjects(currentUserId);
 
         return getProjectDetail(project.getId(), currentUserId);
     }
 
+    // 查询当前用户的项目列表
     @Override
     public Page<ProjectListVO> listMyProjects(Integer currentUserId, Integer page, Integer size) {
         return projectCacheManager.queryMyProjects(currentUserId, page, size, () -> projectMapper.selectMyProjectsPage(new Page<>(page, size), currentUserId));
     }
 
+    // 查询项目详情
     @Override
     public ProjectDetailVO getProjectDetail(Integer projectId, Integer currentUserId){
         return projectCacheManager.queryProjectDetail(projectId, currentUserId, () -> loadProjectDetailFromDb(projectId, currentUserId));
     }
 
+    // 更新项目
     @Override
     @Transactional
     public ProjectDetailVO updateProject(Integer projectId, ProjectUpdateDTO dto, Integer currentUserId) {
@@ -118,8 +123,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public ProjectMemberVO inviteMember(Integer projectId, ProjectMemberInviteDTO dto, Integer currentUserId) {
         getProjectOrThrow(projectId);
-        checkOwner(projectId, currentUserId); // 校验当前用户是OWNER
+        checkOwner(projectId, currentUserId); // 校验当前用户是否为OWNER，只有owner可以邀请成员，非owner则抛出异常
 
+        // 校验
         if(!ROLE_MEMBER.equals(dto.getRole()) && !ROLE_VIEWER.equals(dto.getRole())) {
             throw new BusinessException(400, "邀请的项目成员角色只能是MEMBER或VIEWER");
         }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.common.Result;
 import com.example.usermanagement.dto.TaskCreateDTO;
+import com.example.usermanagement.dto.TaskStatusUpdateDTO;
 import com.example.usermanagement.dto.TaskUpdateDTO;
 import com.example.usermanagement.exception.BusinessException;
 import com.example.usermanagement.security.SecurityUserDetails;
@@ -85,6 +86,17 @@ public class TaskController {
         Integer currentUserId = getCurrentUserId();
         taskService.deleteTask(id, currentUserId);
         return Result.success();
+    }
+
+    @PatchMapping("/api/tasks/{id}/status")
+    @Operation(summary = "更新任务状态", description = "更新任务状态，按TODO->IN_PROGRESS->IN_REVIEW->DONE顺序流转任务状态，不能跳过中间状态只有项目的OWNER和任务负责人可以更新任务状态，VIEWER只读")
+    public Result<TaskVO> updateTaskStatus(
+            @Parameter(description = "任务ID，必须为正整数", required = true, example = "1")
+            @PathVariable @Min(1) Integer id,
+            @Valid @RequestBody TaskStatusUpdateDTO dto) {
+        Integer currentUserId = getCurrentUserId();
+        TaskVO task = taskService.updateTaskStatus(id, dto, currentUserId);
+        return Result.success(task);
     }
 
     private Integer getCurrentUserId() {
