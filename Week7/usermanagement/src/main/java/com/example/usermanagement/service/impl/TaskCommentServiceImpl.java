@@ -82,7 +82,9 @@ public class TaskCommentServiceImpl implements TaskCommentService {
 
         // MEMBER
         // 非自己的评论-->无法删除
-        if(!comment.getUserId().equals(currentUserId)){
+        if(!currentUserId.equals(comment.getUserId())){
+            // equsls两边不能交换：
+            // task_comment.user_id允许因用户删除变成 NULL-->删除时comment.getUserId().equals(...) 可能空指针
             throw new BusinessException(403, "MEMBER只能删除自己发布的评论");
         }
         // 自己的评论-->可以删除

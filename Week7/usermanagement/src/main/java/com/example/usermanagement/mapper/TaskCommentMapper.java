@@ -22,11 +22,12 @@ public interface TaskCommentMapper extends BaseMapper<TaskComment> {
                 tc.content,
                 tc.created_at AS createdAt
             FROM task_comment tc
-            INNER JOIN user u ON tc.user_id = u.id
+            LEFT JOIN user u ON tc.user_id = u.id
             WHERE tc.task_id = #{taskId}
             ORDER BY tc.created_at ASC, tc.id ASC
             """)
     List<TaskCommentVO> selectCommentsByTaskId(@Param("taskId") Integer taskId);
+    // 如果用INTER-->task_comment.user_id 允许因用户删除变成 NULL --> INNER JOIN user 会漏掉这类评论
 
     @Select("""
             SELECT
@@ -37,7 +38,7 @@ public interface TaskCommentMapper extends BaseMapper<TaskComment> {
                 tc.content,
                 tc.created_at AS createdAt
             FROM task_comment tc
-            INNER JOIN user u ON tc.user_id = u.id
+            LEFT JOIN user u ON tc.user_id = u.id
             WHERE tc.id = #{id}
             """)
     TaskCommentVO selectCommentVOById(@Param("id") Integer id);
