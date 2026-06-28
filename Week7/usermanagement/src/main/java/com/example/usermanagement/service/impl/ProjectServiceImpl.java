@@ -12,12 +12,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usermanagement.cache.ProjectCacheManager;
 import com.example.usermanagement.dto.ProjectCreateDTO;
+import com.example.usermanagement.dto.ProjectMemberInviteDTO;
 import com.example.usermanagement.dto.ProjectUpdateDTO;
 import com.example.usermanagement.entity.Project;
 import com.example.usermanagement.entity.ProjectMember;
+import com.example.usermanagement.entity.User;
 import com.example.usermanagement.exception.BusinessException;
 import com.example.usermanagement.mapper.ProjectMapper;
 import com.example.usermanagement.mapper.ProjectMemberMapper;
+import com.example.usermanagement.mapper.UserMapper;
 import com.example.usermanagement.service.ProjectService;
 import com.example.usermanagement.vo.ProjectDetailVO;
 import com.example.usermanagement.vo.ProjectListVO;
@@ -27,6 +30,8 @@ import com.example.usermanagement.vo.ProjectTaskStatsVO;
 @Service
 public class ProjectServiceImpl implements ProjectService {
     private static final String ROLE_OWNER = "OWNER";
+    private static final String ROLE_MEMBER = "MEMBER";
+    private static final String ROLE_VIEWER = "VIEWER";
 
     @Autowired
     private ProjectMapper projectMapper;
@@ -36,6 +41,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private ProjectCacheManager projectCacheManager;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     @Transactional
@@ -106,6 +114,69 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    @Override
+    @Transactional
+    public ProjectMemberVO inviteMember(Integer projectId, ProjectMemberInviteDTO dto, Integer currentUserId) {
+        getProjectOrThrow(projectId);
+        checkOwner(projectId, currentUserId); // 校验当前用户是OWNER
+
+        if(!ROLE_MEMBER.equals(dto.getRole()) && !ROLE_VIEWER.equals(dto.getRole())) {
+            throw new BusinessException(400, "邀请的项目成员角色只能是MEMBER或VIEWER");
+        }
+
+        User invitedUser = userMapper.selectById(dto.getUserId());
+        if (invitedUser == null) {
+            throw new BusinessException(404, "被邀请用户不存在，id=" + dto.getUserId());
+        }
+
+        ProjectMember existingMember = getProjectMember(projectId, dto.getUserId());
+        if (existingMember != null) {
+            throw new BusinessException(400, "该用户已是项目成员，不能重复邀请");
+        }
+
+        ProjectMember newMember = new ProjectMember();
+        newMember.setProjectId(projectId);
+        newMember.setUserId(dto.getUserId());
+        newMember.setRole(dto.getRole());
+        projectMemberMapper.insert(newMember);
+
+        projectCacheManager.evictProject(projectId); // 成员变化-->清除项目详情缓存
+        projectCacheManager.evictMyProjects(dto.getUserId()); // 清除被邀请用户的项目列表缓存
+
+        return getProjectMemberVOOrThrow(projectId, dto.getUserId());
+    }
+
+    @Override
+    @Transactional
+    public void removeMember(Integer projectId, Integer targetUserId, Integer currentUserId){
+        getProjectOrThrow(projectId);
+        checkOwner(projectId, currentUserId); // 校验当前用户是OWNER
+
+        ProjectMember targetMember = getProjectMember(projectId, targetUserId);
+        if (targetMember == null) {
+            throw new BusinessException(404, "该用户不是项目成员");
+        }
+        if (ROLE_OWNER.equals(targetMember.getRole())) {
+            throw new BusinessException(400, "不能移除项目负责人");
+        }
+
+        projectMemberMapper.deleteById(targetMember.getId());
+
+        projectCacheManager.evictProject(projectId);
+        projectCacheManager.evictMyProjects(targetUserId);
+    }
+
+    @Override
+    public List<ProjectMemberVO> listMembers(Integer projectId, Integer currentUserId) {
+        getProjectOrThrow(projectId);
+        ProjectMember currentMember = getProjectMemberOrThrow(projectId, currentUserId);
+        if (!ROLE_OWNER.equals(currentMember.getRole()) && !ROLE_MEMBER.equals(currentMember.getRole())) {
+            throw new BusinessException(403, "只有项目OWNER或MEMBER可以查看成员列表");
+        }
+        
+        return projectMemberMapper.selectMembersByProjectId(projectId);
+    }
+
     private ProjectDetailVO loadProjectDetailFromDb(Integer projectId, Integer currentUserId) {
         Project project = getProjectOrThrow(projectId);
         ProjectMember currentMember=getProjectMemberOrThrow(projectId, currentUserId);
@@ -166,5 +237,13 @@ public class ProjectServiceImpl implements ProjectService {
         if (!ROLE_OWNER.equals(member.getRole())) {
             throw new BusinessException(403, "你不是该项目的负责人，只有项目OWNER可以执行该操作");
         }
+    }
+
+    private ProjectMemberVO getProjectMemberVOOrThrow(Integer projectId, Integer userId) {
+        List<ProjectMemberVO> members = projectMemberMapper.selectMembersByProjectId(projectId);
+        return members.stream()
+                .filter(member -> userId.equals(member.getUserId()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(404, "项目成员不存在"));
     }
 }
