@@ -42,6 +42,5 @@ INSERT INTO `task_comment` (`task_id`, `user_id`, `content`, `created_at`) VALUE
 (2, 2, 'task2''s comment1', NOW()),
 (3, 3, 'task3''s comment1', NOW());
 
--- INSERT INTO `task_attachment` (`task_id`, `filename`, `original_name`, `file_size`, `uploaded_by`, `created_at`) VALUES
--- (1, 'task1-attachment1.txt', 'task1-attachment1.txt', 1024, 1, NOW()),
--- (2, 'task2-attachment1.txt', 'task2-attachment1.txt', 2048, 2, NOW());
+INSERT INTO `task_attachment` (`task_id`, `filename`, `original_name`, `file_size`, `uploaded_by`, `created_at`) VALUES
+(1, 'Week7.txt', 'Week7.txt', 6477, 1, NOW());

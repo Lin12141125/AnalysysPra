@@ -1,0 +1,114 @@
+第 7 周学习计划：毕业项目（一）— 智能任务管理平台 · 设计与核心开发
+✅ 本周核心目标 (OKRs)
+独立完成一个完整项目的需求分析、数据库设计和核心模块开发。
+将前 6 周所学的 Spring Boot、MyBatis-Plus、Spring Security、Redis 综合运用到真实业务场景中。
+掌握多表关联 CRUD、业务状态流转、文件管理的实战经验。
+🎯 项目背景
+你所在的团队需要一个在线协作任务管理平台，让团队成员能创建项目、分解任务、分配工作、追踪进度。你的任务是独立完成后端 API 的全部设计和开发。
+
+这不是一个"玩具项目"——它的业务复杂度接近真实工作场景：多对多关联（用户↔项目）、一对多关联（项目→任务→评论）、状态机流转、权限分级。
+
+📅 日程安排
+Day 1：需求分析与数据库设计
+目标： 先把"做什么"和"数据怎么存"想清楚，再动手写代码。
+
+任务 1： 需求分析
+
+描述：阅读下方功能需求，画出系统的实体关系图（ER 图）。明确每个实体有哪些字段、实体之间是什么关系（一对一/一对多/多对多）。
+产出：ER 图
+
+任务 2： 数据库设计
+
+描述：根据 ER 图写出完整的建表 SQL。要求：每个表有主键、合理索引、字段注释。至少包含 5 张表。用你在第 6 周学的 docker-compose 挂载方式自动初始化。
+产出：docker/mysql/initdb/001-schema.sql + 002-seed-data.sql（种子数据）
+
+Day 2-3：项目管理模块
+目标： 实现项目的创建、查询、成员管理。
+
+任务 3： 项目 CRUD
+
+描述：实现 POST /api/projects 创建项目、GET /api/projects 查询我参与的项目列表、GET /api/projects/{id} 查看项目详情、PUT /api/projects/{id} 更新项目信息、DELETE /api/projects/{id} 删除项目（仅 OWNER）。
+产出：ProjectController + ProjectService + ProjectMapper
+
+任务 4： 成员管理
+
+描述：项目创建者自动成为 OWNER。实现 POST /api/projects/{id}/members 邀请成员（指定 userId 和角色：MEMBER/VIEWER）、DELETE /api/projects/{id}/members/{userId} 移除成员、GET /api/projects/{id}/members 查看成员列表。OWNER 可以管理成员，MEMBER 只能查看。
+产出：ProjectMemberController + 权限校验逻辑
+
+Day 4-5：任务管理模块
+目标： 实现任务的创建、状态流转和分配——这是系统的核心。
+
+任务 5： 任务 CRUD
+
+描述：实现项目下的任务增删改查。POST /api/projects/{projectId}/tasks、GET /api/projects/{projectId}/tasks（支持按状态/优先级/负责人筛选）、PUT /api/tasks/{id}、DELETE /api/tasks/{id}。
+产出：TaskController + TaskService + TaskMapper
+
+任务 6： 任务状态流转
+
+描述：任务有 4 个状态：TODO → IN_PROGRESS → IN_REVIEW → DONE。实现 PATCH /api/tasks/{id}/status 接口，接收目标状态，校验状态流转是否合法（例如不能从 TODO 直接跳到 DONE）。设计状态机并实现校验逻辑。
+产出：TaskStatus 枚举 + 状态流转校验逻辑
+
+任务 7： 任务分配与优先级
+
+描述：任务有优先级（LOW/MEDIUM/HIGH/URGENT）。PUT /api/tasks/{id}/assign 可以将任务分配给项目成员（只能分配给该项目内的成员）。查询接口支持按负责人和优先级筛选。
+产出：任务分配接口 + 筛选查询
+
+Day 6-7：任务协作模块
+目标： 支持任务评论和附件上传，让任务协作更完整。
+
+任务 8： 任务评论
+
+描述：实现 POST /api/tasks/{taskId}/comments 添加评论、GET /api/tasks/{taskId}/comments 查看评论列表（按时间正序）、DELETE /api/comments/{id} 删除自己的评论。
+产出：TaskCommentController + TaskCommentService
+
+任务 9： 任务附件上传
+
+描述：复用第 6 周的文件上传逻辑，实现 POST /api/tasks/{taskId}/attachments 上传附件、GET /api/attachments/{id} 下载附件。附件关联到具体任务。
+产出：TaskAttachmentController + 附件存储逻辑
+
+💻 本周实战作业
+项目名称：SmartTask — 智能任务管理平台
+数据模型（5 张表）
+表名	说明	关键字段
+project	项目	id, name, description, owner_id, created_at
+project_member	项目成员	id, project_id, user_id, role(OWNER/MEMBER/VIEWER)
+task	任务	id, project_id, title, description, status, priority, assignee_id, deadline, created_at
+task_comment	任务评论	id, task_id, user_id, content, created_at
+task_attachment	任务附件	id, task_id, filename, original_name, file_size, uploaded_by, created_at
+
+功能要求
+A. 项目管理
+
+创建项目 → 创建者自动成为 OWNER
+查询"我参与的项目"列表（我创建的 + 我被邀请的）
+查看项目详情（含成员列表、任务统计）
+更新项目信息（仅 OWNER）
+删除项目（仅 OWNER，级联删除所有任务/评论/附件）
+邀请/移除成员（仅 OWNER，只能分配 MEMBER 或 VIEWER 角色）
+
+B. 任务管理
+7. 在项目下创建任务
+8. 任务列表查询：支持按状态、优先级、负责人筛选
+9. 任务状态流转：TODO → IN_PROGRESS → IN_REVIEW → DONE，校验流转合法性
+10. 分配任务给项目成员
+11. 更新/删除任务（OWNER 可删任何任务，MEMBER 只能改自己负责的任务）
+
+C. 协作功能
+12. 任务评论：项目成员均可评论
+13. 任务附件：上传/下载，文件限制 10MB
+
+权限模型
+角色	权限
+PROJECT_OWNER	管理项目、管理成员、CRUD 任务、删除任何评论
+PROJECT_MEMBER	查看项目、CRUD 自己负责的任务、添加评论
+PROJECT_VIEWER	仅查看项目、任务和评论（只读）
+注意：项目级角色（OWNER/MEMBER/VIEWER）与系统级角色（ADMIN/USER）是两套独立的权限体系，需结合使用。
+
+技术要求
+在现有用户管理系统代码基础上增量开发，复用已有的用户、认证、缓存基础设施
+所有接口继续使用 Result<T> 统一响应格式
+Knife4j 文档同步更新，新增接口加 @Operation 注解
+级联删除使用数据库外键或手动事务处理，确保数据一致性
+列表查询接口必须支持分页（PageHelper 或 MyBatis-Plus Page）
+缓存策略：项目详情、任务列表等高频查询接口使用 UserCacheManager 缓存
+代码放在新 package 下：project、task、comment、attachment，与现有 user、auth 模块并列

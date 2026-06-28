@@ -21,8 +21,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 2MB        # 单个文件大小上限
-      max-request-size: 2MB     # 整个请求大小上限（含多文件）
+      max-file-size: 10MB        # 单个文件大小上限
+      max-request-size: 10MB     # 整个请求大小上限（含多文件）
 
 
 # MyBatis-Plus 配置
